@@ -1,0 +1,2208 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Morphen — Etsy Araçları</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f4f0; min-height: 100vh; color: #1a1a1a; }
+  .top-bar { background: white; border-bottom: 0.5px solid #e5e5e5; padding: 0 2rem; display: flex; align-items: center; gap: 1.5rem; position: sticky; top: 0; z-index: 100; }
+  .logo { display: flex; align-items: center; gap: 8px; padding: 14px 0; font-size: 16px; font-weight: 500; color: #1a1a1a; text-decoration: none; border-right: 0.5px solid #e5e5e5; padding-right: 1.5rem; margin-right: 0.5rem; }
+  .logo span { font-size: 20px; }
+  .tabs { display: flex; gap: 4px; }
+  .tab { padding: 8px 16px; font-size: 13px; font-weight: 500; border: none; background: none; cursor: pointer; color: #888; border-radius: 8px; transition: all 0.15s; }
+  .tab:hover { background: #f5f4f0; color: #1a1a1a; }
+  .tab.active { background: #E1F5EE; color: #085041; }
+  .page { display: none; padding: 2rem; max-width: 700px; margin: 0 auto; }
+  .page.active { display: block; }
+  .card { background: white; border-radius: 14px; border: 0.5px solid #e5e5e5; padding: 1.25rem; margin-bottom: 1rem; }
+  .api-label { font-size: 12px; font-weight: 500; color: #888; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; display: block; }
+  .api-row { display: flex; gap: 8px; }
+  .api-input { flex: 1; padding: 9px 12px; border: 0.5px solid #ddd; border-radius: 8px; font-size: 13px; font-family: monospace; background: #fafafa; color: #1a1a1a; }
+  .api-input:focus { outline: none; border-color: #1D9E75; background: white; }
+  .api-btn { padding: 9px 16px; background: #1D9E75; color: white; border: none; border-radius: 8px; font-size: 13px; cursor: pointer; white-space: nowrap; }
+  .api-btn:hover { background: #0F6E56; }
+  .api-status { font-size: 12px; margin-top: 6px; }
+  .api-status.ok { color: #1D9E75; }
+  .api-status.err { color: #E24B4A; }
+  .upload-zone { border: 1.5px dashed #ddd; border-radius: 12px; padding: 2.5rem; text-align: center; cursor: pointer; transition: all 0.15s; background: #fafafa; }
+  .upload-zone:hover, .upload-zone.drag { background: #f0faf6; border-color: #1D9E75; }
+  .upload-icon { font-size: 36px; margin-bottom: 10px; }
+  .upload-text { font-size: 14px; color: #555; }
+  .upload-sub { font-size: 12px; color: #aaa; margin-top: 4px; }
+  input[type=file] { display: none; }
+  .preview-section { display: none; margin-bottom: 1rem; }
+  .preview-inner { display: flex; gap: 1rem; align-items: flex-start; }
+  .preview-img { width: 140px; height: 140px; object-fit: cover; border-radius: 10px; border: 0.5px solid #e5e5e5; flex-shrink: 0; }
+  .preview-info { flex: 1; }
+  .preview-name { font-size: 13px; color: #555; margin-bottom: 8px; word-break: break-all; }
+  .btn-primary { width: 100%; padding: 10px; background: #1D9E75; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: 500; }
+  .btn-primary:hover { background: #0F6E56; }
+  .btn-primary:disabled { background: #aaa; cursor: not-allowed; }
+  .btn-secondary { width: 100%; padding: 8px; background: white; color: #888; border: 0.5px solid #ddd; border-radius: 8px; font-size: 13px; cursor: pointer; margin-top: 6px; }
+  .btn-secondary:hover { background: #f5f5f5; }
+  .loading { display: none; text-align: center; padding: 1.5rem; color: #888; font-size: 13px; }
+  .spinner-lg { width: 24px; height: 24px; border: 2px solid #eee; border-top: 2px solid #1D9E75; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 10px; }
+  .spinner-sm { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.4); border-top: 2px solid white; border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .result-section { display: none; }
+  .result-row { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 0.5px solid #f0f0f0; }
+  .result-row:last-child { border-bottom: none; }
+  .badge { font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 20px; flex-shrink: 0; min-width: 120px; text-align: center; }
+  .b-nis { background: #FAEEDA; color: #633806; }
+  .b-stil { background: #EEEDFE; color: #3C3489; }
+  .b-kim { background: #E1F5EE; color: #085041; }
+  .b-strateji { background: #E6F1FB; color: #0C447C; }
+  .b-risk { background: #FCEBEB; color: #501313; }
+  .result-val { font-size: 13px; color: #1a1a1a; line-height: 1.6; flex: 1; }
+  .copy-section { display: none; margin-top: 1rem; }
+  .copy-box { background: #f8f8f6; border: 0.5px solid #e5e5e5; border-radius: 8px; padding: 12px; font-size: 12px; font-family: monospace; color: #555; line-height: 1.8; white-space: pre-wrap; word-break: break-all; }
+  .copy-btn-sm { margin-top: 8px; width: 100%; padding: 9px; background: white; border: 0.5px solid #ddd; border-radius: 8px; font-size: 13px; cursor: pointer; color: #555; }
+  .copy-btn-sm:hover { background: #f5f5f5; }
+  .copy-btn-sm.copied { color: #1D9E75; border-color: #1D9E75; }
+  .tip { font-size: 12px; color: #aaa; text-align: center; margin-top: 1rem; line-height: 1.6; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group.full { grid-column: 1 / -1; }
+  label { font-size: 12px; font-weight: 500; color: #888; text-transform: uppercase; letter-spacing: 0.04em; }
+  input[type=text], input[type=password], select, textarea { font-family: inherit; font-size: 13px; color: #1a1a1a; background: #fafafa; border: 0.5px solid #ddd; border-radius: 8px; padding: 8px 12px; width: 100%; }
+  input[type=text]:focus, select:focus, textarea:focus { outline: none; border-color: #1D9E75; background: white; }
+  textarea { resize: vertical; min-height: 70px; }
+  .gen-btn { width: 100%; padding: 11px; font-size: 14px; font-weight: 500; background: #1D9E75; color: white; border: none; border-radius: 8px; cursor: pointer; margin-top: 4px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .gen-btn:hover { background: #0F6E56; }
+  .gen-btn:disabled { background: #aaa; cursor: not-allowed; }
+  .filter-btn-p { font-size: 12px; padding: 4px 12px; border-radius: 20px; cursor: pointer; border: 0.5px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-secondary); }
+  .result-block { margin-bottom: 1rem; }
+  .block-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .block-title { font-size: 12px; font-weight: 500; color: #888; text-transform: uppercase; letter-spacing: 0.04em; }
+  .copy-block-btn { font-size: 12px; padding: 4px 10px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 4px; background: #f5f4f0; border: 0.5px solid #ddd; color: #888; }
+  .copy-block-btn:hover { background: white; }
+  .copy-block-btn.copied { color: #1D9E75; border-color: #1D9E75; }
+  .text-box { background: #f8f8f6; border: 0.5px solid #e5e5e5; border-radius: 8px; padding: 12px 14px; font-size: 13px; color: #1a1a1a; line-height: 1.7; white-space: pre-wrap; word-break: break-word; }
+  .copy-all-btn { width: 100%; padding: 10px; font-size: 13px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; background: white; border: 0.5px solid #ddd; color: #555; }
+  .copy-all-btn:hover { background: #f5f4f0; }
+  .badge-l { font-size: 11px; padding: 2px 8px; border-radius: 20px; }
+  .b-hikaye { background: #E1F5EE; color: #085041; }
+  .b-bakim { background: #E6F1FB; color: #0C447C; }
+  .b-iade { background: #FAEEDA; color: #633806; }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  .kn-container { max-width: 1100px; margin: 0 auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #1a1a1a; }
+  .kn-header { text-align: center; margin-bottom: 1.5rem; }
+  .kn-header h1 { font-size: 20px; font-weight: 500; }
+  .kn-header p { font-size: 13px; color: #888; margin-top: 4px; }
+  .kn-layout { display: grid; grid-template-columns: 220px 1fr 260px; gap: 1rem; }
+  @media (max-width: 900px) { .kn-layout { grid-template-columns: 1fr; } }
+
+  .kn-panel { background: white; border-radius: 14px; border: 0.5px solid #e5e5e5; padding: 1rem; }
+  .kn-panel-title { font-size: 11px; font-weight: 500; color: #888; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 10px; }
+
+  .kn-view-btn { width: 100%; padding: 7px 9px; margin-bottom: 4px; border-radius: 8px; border: 0.5px solid #ddd; background: #fafafa; cursor: pointer; font-size: 12px; text-align: left; display: flex; align-items: center; gap: 8px; }
+  .kn-view-btn.active { background: #1D9E75; color: white; border-color: #1D9E75; }
+  .kn-view-btn:hover:not(.active) { background: #f0faf6; }
+
+  .kn-color-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+  .kn-color-dot { width: 28px; height: 28px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
+  .kn-color-dot.active { border-color: #1D9E75; }
+
+  .kn-canvas-wrap { background: #fafafa; border-radius: 12px; display: flex; align-items: center; justify-content: center; min-height: 560px; position: relative; overflow: hidden; }
+  .kn-shirt-stage { position: relative; width: 420px; height: 520px; }
+  .kn-shirt-svg { width: 100%; height: 100%; }
+
+  .kn-design-layer { position: absolute; cursor: move; touch-action: none; user-select: none; }
+  .kn-design-layer img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+  .kn-design-layer.selected { outline: 2px dashed #1D9E75; outline-offset: 4px; }
+
+  .kn-resize-handle { position: absolute; width: 14px; height: 14px; background: #1D9E75; border-radius: 50%; bottom: -7px; right: -7px; cursor: nwse-resize; border: 2px solid white; }
+  .kn-rotate-handle { position: absolute; width: 14px; height: 14px; background: #378ADD; border-radius: 50%; top: -7px; right: -7px; cursor: grab; border: 2px solid white; }
+
+  .kn-upload-zone { border: 1.5px dashed #ddd; border-radius: 10px; padding: 1.5rem 1rem; text-align: center; cursor: pointer; margin-bottom: 1rem; }
+  .kn-upload-zone:hover { background: #f0faf6; border-color: #1D9E75; }
+  .kn-upload-zone .kn-ico { font-size: 24px; margin-bottom: 6px; }
+  .kn-upload-zone .kn-txt { font-size: 12px; color: #888; }
+  input[type=file] { display: none; }
+
+  .kn-control-group { margin-bottom: 14px; }
+  .kn-control-label { font-size: 12px; color: #555; display: flex; justify-content: space-between; margin-bottom: 4px; }
+  .kn-control-label span:last-child { font-weight: 500; color: #1D9E75; }
+  input[type=range] { width: 100%; }
+
+  .kn-layer-list { margin-top: 6px; }
+  .kn-layer-item { display: flex; align-items: center; gap: 8px; padding: 7px 8px; border-radius: 8px; cursor: pointer; font-size: 12px; margin-bottom: 4px; border: 0.5px solid transparent; }
+  .kn-layer-item:hover { background: #f5f5f5; }
+  .kn-layer-item.active { background: #E1F5EE; border-color: #1D9E75; }
+  .kn-layer-item .kn-thumb { width: 28px; height: 28px; border-radius: 4px; background: #eee; flex-shrink: 0; object-fit: contain; }
+  .kn-layer-item .kn-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .kn-layer-item .kn-del { color: #bbb; cursor: pointer; font-size: 13px; }
+  .kn-layer-item .kn-del:hover { color: #E24B4A; }
+
+  .kn-btn-primary { width: 100%; padding: 10px; background: #1D9E75; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500; margin-top: 8px; }
+  .kn-btn-primary:hover { background: #0F6E56; }
+  .kn-btn-secondary { width: 100%; padding: 9px; background: white; color: #888; border: 0.5px solid #ddd; border-radius: 8px; cursor: pointer; font-size: 13px; margin-top: 6px; }
+  .kn-btn-secondary:hover { background: #f5f5f5; }
+
+  .kn-guide-lines { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+
+  .kn-tip { font-size: 11px; color: #aaa; text-align: center; margin-top: 1rem; line-height: 1.6; }
+
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="logo"><span>🦋</span> Morphen</div>
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('analizci')">Ürün Analizci</button>
+    <button class="tab" onclick="switchTab('listing')">Listing Yazıcı</button>
+    <button class="tab" onclick="switchTab('pano')">Tasarım Panosu</button>
+    <button class="tab" onclick="switchTab('konum')">Konumlandırıcı</button>
+    <button class="tab" onclick="switchTab('ayarlar')">Ayarlar</button>
+  </div>
+</div>
+
+<!-- ANALİZCİ -->
+<div class="page active" id="page-analizci">
+  <div class="card" id="a-upload-card">
+    <div class="upload-zone" id="a-zone"
+      onclick="document.getElementById('a-file-in').click()"
+      ondragover="aEv(event,'drag')" ondragleave="aEv(event,'')" ondrop="aDrop(event)">
+      <div class="upload-icon">📷</div>
+      <div class="upload-text">Etsy ürün görselini sürükle veya tıkla</div>
+      <div class="upload-sub">JPG, PNG — max 10MB</div>
+    </div>
+    <input type="file" id="a-file-in" accept="image/*" onchange="aLoadFile(this)">
+  </div>
+
+  <div class="card preview-section" id="a-preview">
+    <div class="preview-inner">
+      <img class="preview-img" id="a-preview-img" src="" alt="Ürün görseli" />
+      <div class="preview-info">
+        <div class="preview-name" id="a-preview-name"></div>
+        <button class="btn-primary" onclick="analyze()">Analiz Et</button>
+        <button class="btn-secondary" onclick="aReset()">Yeni görsel yükle</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card loading" id="a-loading"><div class="spinner-lg"></div>Analiz yapılıyor...</div>
+
+  <div class="card result-section" id="a-result">
+    <div class="result-row"><span class="badge b-nis">Niş</span><span class="result-val" id="r-nis"></span></div>
+    <div class="result-row"><span class="badge b-stil">Tasarım stili</span><span class="result-val" id="r-stil"></span></div>
+    <div class="result-row"><span class="badge b-kim">Kim alır</span><span class="result-val" id="r-kim"></span></div>
+    <div class="result-row"><span class="badge b-strateji">Strateji notu</span><span class="result-val" id="r-strateji"></span></div>
+    <div class="result-row"><span class="badge" style="background:#EAF3DE;color:#173404;">Mevsimsellik</span><span class="result-val" id="r-mevsim"></span></div>
+    <div class="result-row"><span class="badge" style="background:#FAEEDA;color:#412402;">Fiyat tavsiyesi</span><span class="result-val" id="r-fiyat"></span></div>
+    <div class="result-row"><span class="badge" style="background:#E1F5EE;color:#085041;">Etsy başlığı</span><span class="result-val" id="r-baslik"></span></div>
+    <div class="result-row"><span class="badge" style="background:#EEEDFE;color:#3C3489;">Marka önerisi</span><span class="result-val" id="r-marka"></span></div>
+    <div class="result-row"><span class="badge" style="background:#FCEBEB;color:#633806;">Renk önerisi</span><span class="result-val" id="r-renk" style="display:flex; align-items:center; gap:8px;"><span id="r-renk-swatch" style="display:inline-block; width:16px; height:16px; border-radius:50%; border:1px solid #ddd; flex-shrink:0;"></span><span id="r-renk-text"></span></span></div>
+    <div class="result-row"><span class="badge" style="background:#FAEEDA;color:#633806;">Alternatif konsept</span><span class="result-val" id="r-alternatif"></span></div>
+    <div class="result-row"><span class="badge" style="background:#E1F5EE;color:#085041;">Potansiyel skoru</span><span class="result-val" id="r-skor"></span></div>
+    <div class="result-row"><span class="badge" style="background:#FCEBEB;color:#3C3489;">Tasarım geliştirme</span><span class="result-val" id="r-gelistirme"></span></div>
+    <div class="result-row"><span class="badge" style="background:#E6F1FB;color:#0C447C;">AI prompt</span><span class="result-val" id="r-aiprompt" style="font-family:monospace; font-size:12px;"></span></div>
+    <div class="result-row"><span class="badge" style="background:#FAEEDA;color:#412402;">AI prompt (geliştirilmiş)</span><span class="result-val" id="r-aiprompt-gelistirilmis" style="font-family:monospace; font-size:12px;"></span></div>
+    <div class="result-row" id="r-risk-row" style="display:none;"><span class="badge b-risk">Risk</span><span class="result-val" id="r-risk"></span></div>
+  </div>
+  <div class="card" id="mockup-card" style="display:none; background: #f0faf6; border: 0.5px solid #9FE1CB;">
+    <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+      <span style="font-size:22px;">👕</span>
+      <div style="flex:1;">
+        <div style="font-size:13px; font-weight:500; color:#085041; margin-bottom:4px;">Sıradaki adım — Mockup oluştur</div>
+        <div style="font-size:12px; color:#0F6E56; line-height:1.6;">Tasarımını Printful Mockup Generator'a yükle, model fotoğrafını indir, Etsy'ye hazır.</div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:6px; flex-shrink:0;">
+        <button onclick="window.open('https://www.printful.com/mockup-generator','_blank')" style="padding:8px 16px; background:#1D9E75; color:white; border:none; border-radius:8px; font-size:13px; cursor:pointer; white-space:nowrap;">Printful'u aç →</button>
+        <button onclick="window.open('https://placeit.net/t-shirts','_blank')" style="padding:8px 16px; background:white; color:#0F6E56; border:0.5px solid #1D9E75; border-radius:8px; font-size:13px; cursor:pointer; white-space:nowrap;">Placeit'i aç →</button>
+      </div>
+    </div>
+    <div style="margin-top:12px; padding-top:12px; border-top:0.5px solid #9FE1CB;">
+      <div style="font-size:11px; font-weight:500; color:#085041; margin-bottom:6px;">ADIMLAR</div>
+      <div style="font-size:12px; color:#0F6E56; line-height:2;" id="mockup-steps">1. Printful'u aç → Mockup Generator → önerilen modeli seç<br>2. Renk seç (Navy, Black veya White dene)<br>3. Tasarım PNG'ni yükle → pozisyonu ayarla<br>4. Mockup'ı indir → Etsy listing'ine ekle</div>
+    </div>
+  </div>
+
+  <div class="card copy-section" id="a-copy">
+    <span class="api-label">Excel için kopyala</span>
+    <div class="copy-box" id="a-copy-box"></div>
+    <button class="copy-btn-sm" id="a-copy-btn" onclick="aCopyText()">Kopyala</button>
+    <button class="btn-primary" style="margin-top:8px;" onclick="sendToListing()">✍️ Listing Yazıcı'ya gönder</button>
+    <button class="btn-secondary" style="margin-top:6px;" onclick="aReset()">Yeni görsel analiz et</button>
+  </div>
+  <div class="tip">Her analiz yaklaşık $0.002 — $5 kredi ile 2000+ görsel.</div>
+</div>
+
+<!-- LİSTİNG YAZICI -->
+<div class="page" id="page-listing">
+  <div class="card" id="l-form-card">
+    <div class="form-grid">
+      <div class="form-group"><label>Ürün adı</label><input type="text" id="l-urun" placeholder="örn: Wildflower Floral Tee" /></div>
+      <div class="form-group"><label>Marka</label>
+        <select id="l-marka">
+          <optgroup label="Bella Canvas">
+          <option>Bella Canvas Unisex Adult T-Shirt 3001</option>
+          <option>Bella Canvas Baby Bodysuit 100B/134B</option>
+          <option>Bella Canvas Baby Tee 3001B/3413B</option>
+          <option>Bella Canvas Toddler Tee 3001T/3413T</option>
+          <option>Bella Canvas Micro Rib Baby Tee 1010</option>
+          <option>Bella Canvas Micro Rib Racer Tank 1019</option>
+          <option>Bella Canvas Micro Rib Long Sleeve Baby Tee 1501</option>
+          <option>Bella Canvas Micro Rib Raglan Baby Tee 1201</option>
+          <option>Bella Canvas Micro Rib Spaghetti Tank 1012</option>
+          <option>Bella Canvas Women V-Neck 6405</option>
+          <option>Bella Canvas Youth Tee 3001Y</option>
+          <option>Bella Canvas Youth Tank 3480Y</option>
+          </optgroup>
+          <optgroup label="Comfort Colors">
+          <option>Comfort Colors T-Shirt 1717</option>
+          <option>Comfort Colors ColorBlast T-Shirt 1745</option>
+          <option>Comfort Colors Boxy Tee</option>
+          <option>Comfort Colors Garment-Dyed Heavyweight Tee</option>
+          <option>Comfort Colors Long Sleeve Pocket T-Shirt 4410</option>
+          <option>Comfort Colors Long Sleeve T-Shirt 6014</option>
+          <option>Comfort Colors Sweatshirt 1566</option>
+          <option>Comfort Colors Youth T-Shirt 9018</option>
+          </optgroup>
+          <optgroup label="Gildan">
+          <option>Gildan Baby Tee/Youth T-Shirt 5000B</option>
+          <option>Gildan Toddler T-Shirt 5100P</option>
+          <option>Gildan Unisex Hoodie 18500</option>
+          <option>Gildan Unisex Sweatshirt 18000</option>
+          <option>Gildan Unisex T-Shirt 64000</option>
+          <option>Gildan Youth Sweatshirt 18000B</option>
+          <option>Gildan Youth Hoodie 18500B</option>
+          <option>Gildan Youth T-Shirt 64000B</option>
+          </optgroup>
+          <optgroup label="Rabbit Skins">
+          <option>Rabbit Skins Infant Baby Rib Bodysuit 4400</option>
+          <option>Rabbit Skins Baby Tee 3322</option>
+          <option>Rabbit Skins Toddler Sweatshirt 3317</option>
+          <option>Rabbit Skins Toddler T-Shirt 3321</option>
+          <option>Rabbit Skins Toddler Tank 3323</option>
+          </optgroup>
+          <optgroup label="Next Level">
+          <option>Next Level Women's Ideal Crop Top 1580</option>
+          </optgroup>
+        </select>
+      </div>
+      <div class="form-group"><label>Niş</label><input type="text" id="l-nis" placeholder="örn: nature lovers, floral aesthetic" /></div>
+      <div class="form-group"><label>Hedef kitle</label><input type="text" id="l-hedef" placeholder="örn: 25-40 yaş kadınlar" /></div>
+      <div class="form-group"><label>Tasarım stili</label><input type="text" id="l-stil" placeholder="örn: minimal floral, watercolor" /></div>
+      <div class="form-group"><label>İptal süresi</label>
+        <select id="l-iptal"><option value="12">12 saat</option><option value="24" selected>24 saat</option><option value="48">48 saat</option></select>
+      </div>
+      <div class="form-group full"><label>Ek not (isteğe bağlı)</label><textarea id="l-not" placeholder="Eklemek istediğin bir şey?"></textarea></div>
+    </div>
+    <div style="margin-top:12px;">
+      <button class="gen-btn" id="l-gen-btn" onclick="generateListing()">
+        <div class="spinner-sm" id="l-spinner"></div>
+        <span id="l-gen-label">✨ Listing metinlerini oluştur</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="result-section" id="l-result">
+    <div class="card result-block">
+      <div class="block-header"><div class="block-title"><span class="badge-l b-hikaye">Ürün hikayesi</span></div><button class="copy-block-btn" onclick="copyBlock('l-hikaye','this_btn')" id="cb-hikaye">Kopyala</button></div>
+      <div class="text-box" id="l-hikaye"></div>
+    </div>
+    <div class="card result-block">
+      <div class="block-header"><div class="block-title"><span class="badge-l b-bakim">Bakım talimatları</span></div><button class="copy-block-btn" onclick="copyBlock('l-bakim','this_btn')" id="cb-bakim">Kopyala</button></div>
+      <div class="text-box" id="l-bakim"></div>
+    </div>
+    <div class="card result-block">
+      <div class="block-header"><div class="block-title"><span class="badge-l b-iade">İptal & iade politikası</span></div><button class="copy-block-btn" onclick="copyBlock('l-iade','this_btn')" id="cb-iade">Kopyala</button></div>
+      <div class="text-box" id="l-iade"></div>
+    </div>
+    <button class="copy-all-btn" onclick="copyAllListing()">Tümünü kopyala</button>
+    <button class="btn-secondary" style="margin-top:6px;" onclick="lReset()">Yeni ürün için sıfırla</button>
+  </div>
+</div>
+
+<!-- PANO -->
+<div class="page" id="page-pano">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:8px;">
+  <div style="font-size:16px;font-weight:500;color:var(--color-text-primary);display:flex;align-items:center;gap:8px;"><span>🦋</span> Morphen Tasarım Panosu</div>
+  <button onclick="panoOpenModal()" style="font-size:12px;padding:6px 14px;border-radius:var(--border-radius-md);cursor:pointer;background:#1D9E75;color:white;border:none;"><i class="ti ti-plus" aria-hidden="true"></i> Yeni tasarım ekle</button>
+</div>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.25rem;">
+  <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px;text-align:center;"><div style="font-size:22px;font-weight:500;color:var(--color-text-primary);" id="ps-toplam">0</div><div style="font-size:11px;color:var(--color-text-secondary);margin-top:2px;">Toplam</div></div>
+  <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px;text-align:center;"><div style="font-size:22px;font-weight:500;color:var(--color-text-primary);" id="ps-hazir">0</div><div style="font-size:11px;color:var(--color-text-secondary);margin-top:2px;">Hazır</div></div>
+  <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px;text-align:center;"><div style="font-size:22px;font-weight:500;color:var(--color-text-primary);" id="ps-bekliyor">0</div><div style="font-size:11px;color:var(--color-text-secondary);margin-top:2px;">Bekliyor</div></div>
+  <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px;text-align:center;"><div style="font-size:22px;font-weight:500;color:var(--color-text-primary);" id="ps-yayinda">0</div><div style="font-size:11px;color:var(--color-text-secondary);margin-top:2px;">Yayında</div></div>
+</div>
+<div style="margin-bottom:1rem;">
+  <input type="text" id="pano-search" placeholder="🔍 Tasarım adı, niş veya tag ara..." oninput="panoSearchHandler(this.value)" style="width:100%;padding:9px 12px;border:0.5px solid #ddd;border-radius:8px;font-size:13px;">
+</div>
+<div style="display:flex;gap:6px;margin-bottom:1rem;flex-wrap:wrap;" id="pano-filters">
+  <button class="filter-btn-p active-p" onclick="panoFilter('hepsi',this)">Hepsi</button>
+  <button class="filter-btn-p" onclick="panoFilter('Hazır',this)">Hazır</button>
+  <button class="filter-btn-p" onclick="panoFilter('Bekliyor',this)">Bekliyor</button>
+  <button class="filter-btn-p" onclick="panoFilter('Yayında',this)">Yayında</button>
+  <button class="filter-btn-p" onclick="panoToggleBulkView()" id="pano-bulk-btn" style="margin-left:auto;">Toplu görünüm</button>
+</div>
+<div id="pano-bulk-view" style="display:none; background:var(--color-background-primary); border:0.5px solid var(--color-border-tertiary); border-radius:var(--border-radius-lg); padding:1rem 1.25rem; margin-bottom:1rem;">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+    <span style="font-size:12px; font-weight:500; color:var(--color-text-secondary); text-transform:uppercase; letter-spacing:0.04em;">Hazır tasarımlar — toplu liste</span>
+    <button onclick="panoCopyBulkView()" style="font-size:12px; padding:5px 12px; border-radius:var(--border-radius-md); cursor:pointer; background:#1D9E75; color:white; border:none;">Tümünü kopyala</button>
+  </div>
+  <div id="pano-bulk-content" style="font-size:12px; line-height:1.8; max-height:400px; overflow-y:auto; font-family:monospace; white-space:pre-wrap; background:var(--color-background-secondary); border-radius:var(--border-radius-md); padding:10px;"></div>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;" id="pano-grid"></div>
+</div>
+
+
+
+<!-- KONUMLANDIRICI -->
+<div class="page" id="page-konum" style="max-width:1100px;">
+
+<div class="kn-container">
+
+  <div class="kn-header">
+    <h1>🦋 Morphen — Tasarım Konumlandırıcı</h1>
+    <p>Tasarımını yükle, t-shirt üzerinde istediğin yere sürükle, boyutlandır, döndür</p>
+  </div>
+
+  <div class="kn-panel" style="margin-bottom:1rem;">
+    <div class="kn-panel-title">Remove.bg API key (arka plan kaldırma için)</div>
+    <div style="display:flex; gap:8px;">
+      <input type="password" id="kn-rmbg-key" placeholder="API key buraya..." style="flex:1; padding:8px 10px; border:0.5px solid #ddd; border-radius:8px; font-size:13px; font-family:monospace;">
+      <button onclick="knSaveRmbgKey()" style="padding:8px 16px; background:#1D9E75; color:white; border:none; border-radius:8px; cursor:pointer; font-size:13px;">Kaydet</button>
+    </div>
+    <div id="kn-rmbg-status" style="font-size:11px; margin-top:6px; color:#888;"></div>
+  </div>
+
+  <div class="kn-layout">
+
+    <!-- LEFT: View + Mockup Upload -->
+    <div class="kn-panel">
+      <div class="kn-panel-title">Mockup fotoğrafı</div>
+      <div class="kn-upload-zone" onclick="document.getElementById('kn-mockup-in').click()" style="margin-bottom:10px;">
+        <div class="kn-ico">🖼️</div>
+        <div class="kn-txt">Mockup yükle</div>
+      </div>
+      <input type="file" id="kn-mockup-in" accept="image/*" onchange="knLoadMockup(this)">
+
+      <div class="kn-panel-title" style="margin-top:1.25rem;">Görünüm sekmeleri</div>
+      <div id="kn-view-buttons"></div>
+      <div style="font-size:11px; color:#aaa; margin-top:8px; line-height:1.5;">Her sekme kendi mockup fotoğrafını ve tasarımını ayrı tutar — örn. Görünüm 1 = ön, Görünüm 2 = arka.</div>
+    </div>
+
+    <!-- CENTER: Canvas -->
+    <div class="kn-canvas-wrap">
+      <div class="kn-shirt-stage" id="kn-shirt-stage">
+        <div id="kn-mockup-bg" style="position:absolute; top:0; left:0; width:100%; height:100%; background-size:contain; background-position:center; background-repeat:no-repeat; background-color:#fff; border-radius:8px;">
+          <div id="kn-mockup-placeholder" style="display:flex; align-items:center; justify-content:center; height:100%; color:#bbb; font-size:13px; text-align:center; padding:2rem;">Sol panelden mockup fotoğrafı yükle</div>
+        </div>
+        <div id="kn-design-container" style="position:absolute; top:0; left:0; width:100%; height:100%;"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Upload + Controls + Layers -->
+    <div class="kn-panel">
+      <div class="kn-upload-zone" onclick="document.getElementById('kn-file-in').click()">
+        <div class="kn-ico">📷</div>
+        <div class="kn-txt">Tasarım yükle</div>
+      </div>
+      <input type="file" id="kn-file-in" accept="image/*" multiple onchange="knLoadFiles(this)">
+
+      <div id="kn-controls" style="display:none;">
+        <button class="kn-btn-secondary" onclick="knRemoveSelectedBg()" id="kn-rmbg-btn" style="background:#E1F5EE; color:#085041; border-color:#1D9E75; font-weight:500;">✨ Arka planı kaldır</button>
+        <div id="kn-rect-controls">
+        <div class="kn-control-group" style="margin-top:14px;">
+          <div class="kn-control-label"><span>Boyut</span><span id="kn-size-val">100%</span></div>
+          <input type="range" id="kn-size-slider" min="10" max="200" value="100" oninput="knUpdateSize(this.value)">
+        </div>
+        <div class="kn-control-group">
+          <div class="kn-control-label"><span>Döndürme</span><span id="kn-rot-val">0°</span></div>
+          <input type="range" id="kn-rot-slider" min="-180" max="180" value="0" oninput="knUpdateRotation(this.value)">
+        </div>
+        </div>
+        <div class="kn-control-group">
+          <div class="kn-control-label"><span>Saydamlık</span><span id="kn-op-val">100%</span></div>
+          <input type="range" id="kn-op-slider" min="10" max="100" value="100" oninput="knUpdateOpacity(this.value)">
+        </div>
+        <button class="kn-btn-secondary" id="kn-perspective-btn" onclick="knTogglePerspective()" style="background:#E6F1FB; color:#0C447C; border-color:#378ADD; font-weight:500;">📐 Köşeleri çek (perspektif)</button>
+        <button class="kn-btn-secondary" id="kn-blend-btn" onclick="knToggleBlend()" style="background:#FAEEDA; color:#633806; border-color:#c6973f; font-weight:500;">🌗 Kumaşa harmanla</button>
+        <div style="font-size:10px; color:#aaa; margin-top:-2px; margin-bottom:8px; line-height:1.4;">Perspektif: 4 köşeyi tek tek çekip tasarımı kumaşın açısına oturt. Harmanla: tasarımı kumaşın ışık/gölgesiyle karıştırır, "yapıştırma" hissini azaltır.</div>
+        <button class="kn-btn-secondary" onclick="knCenterSelected()">↔ Ortala</button>
+        <button class="kn-btn-secondary" onclick="knApplyToAllViews()" style="background:#E6F1FB; color:#0C447C; border-color:#378ADD; font-weight:500;">📋 Tüm görünümlere uygula</button>
+        <button class="kn-btn-secondary" onclick="knDeleteSelected()" style="color:#E24B4A;">🗑 Seçiliyi sil</button>
+      </div>
+
+      <div class="kn-panel-title" style="margin-top:1.25rem;">Katmanlar (bu görünüm)</div>
+      <div class="kn-layer-list" id="kn-layer-list">
+        <div style="font-size:11px; color:#bbb; text-align:center; padding:1rem 0;">Henüz tasarım yok</div>
+      </div>
+
+      <div class="kn-panel-title" style="margin-top:1.25rem;">Dışa Aktarma Çözünürlüğü</div>
+      <select id="kn-export-scale" onchange="knExportScale=parseInt(this.value)" style="width:100%; padding:7px 8px; border:0.5px solid #ddd; border-radius:8px; font-size:12px; margin-bottom:6px; background:#fafafa;">
+        <option value="1">420×520 — Taslak (hızlı, düşük boy)</option>
+        <option value="2" selected>840×1040 — Standart</option>
+        <option value="3">1260×1560 — Yüksek</option>
+        <option value="5">2100×2600 — Etsy için önerilen</option>
+        <option value="7">2940×3640 — Maksimum</option>
+      </select>
+      <div style="font-size:10px; color:#aaa; margin-bottom:10px; line-height:1.4;">Not: küçük/düşük kaliteli bir tasarım PNG'sini büyütmek var olmayan detayı icat etmez, sadece var olanı büyütür — netlik garanti değildir. En iyi sonuç için kaynak tasarımın zaten yüksek çözünürlüklü olması gerekir.</div>
+      <label style="display:flex; align-items:center; gap:8px; font-size:12px; color:#555; margin-bottom:10px; cursor:pointer;"><input type="checkbox" id="kn-brand-filter-toggle" checked onchange="knApplyBrandFilter=this.checked" style="width:auto;"> 🦋 Morphen filtresini uygula (ton, vinyet, su damgası)</label>
+      <button class="kn-btn-primary" onclick="knExportSnapshot()">📥 Görüntüyü indir</button>
+      <button class="kn-btn-secondary" id="kn-add-all-btn" onclick="knAddAllViewsToPano()" style="background:#E1F5EE; color:#085041; border-color:#1D9E75; font-weight:500;">🦋 Tüm görünümleri Panoya aktar</button>
+      <button class="kn-btn-secondary" onclick="knAddToPano()" style="font-size:11px; color:#aaa;">Sadece bu görünümü ekle</button>
+    </div>
+
+  </div>
+
+  <div class="kn-tip">Önce mockup fotoğrafı yükle, sonra tasarımı üstüne sürükle. Her sekme kendi fotoğrafını ve tasarımını ayrı tutar. "Tüm görünümlere uygula" ile seçili tasarımı, mockup'ı yüklü olan diğer tüm görünümlere aynı boyut/döndürme/konumda kopyalayabilirsin.</div>
+
+</div>
+
+</div>
+
+<!-- AYARLAR -->
+<div class="page" id="page-ayarlar">
+  <div class="card">
+    <span class="api-label">Anthropic API Key</span>
+    <div class="api-row">
+      <input type="password" class="api-input" id="api-key" placeholder="sk-ant-..." />
+      <button class="api-btn" onclick="saveKey()">Kaydet</button>
+    </div>
+    <div class="api-status" id="api-status"></div>
+    <div style="font-size:11px;color:#E24B4A;margin-top:8px;line-height:1.5;">⚠️ Bu key tarayıcında düz metin olarak saklanır (localStorage). Paylaşılan veya herkese açık bilgisayarlarda kullanma. İşin bittiğinde "Anahtarı sil" ile temizleyebilirsin.</div>
+    <button class="btn-secondary" style="margin-top:8px;color:#E24B4A;border-color:#E24B4A;" onclick="clearKey()">Anahtarı sil</button>
+  </div>
+  <div class="card">
+    <span class="api-label">Marka Notları</span>
+    <div style="font-size:12px;color:#888;margin-bottom:10px;line-height:1.6;">Tasarım formülleri, fark ettiğin kalıplar, "şunu bir dene" notları — burada kalıcı dursun, bir daha unutmayasın.</div>
+    <textarea id="marka-notlari" oninput="saveBrandNotes()" style="min-height:160px; width:100%; font-size:13px; line-height:1.6; padding:10px 12px; border:0.5px solid #ddd; border-radius:8px; background:#fafafa; font-family:inherit; resize:vertical;"></textarea>
+    <div id="marka-notlari-status" style="font-size:11px; color:#1D9E75; margin-top:6px; min-height:14px;"></div>
+  </div>
+  <div class="card">
+    <span class="api-label">Veri Yedekleme</span>
+    <div style="font-size:12px;color:#888;margin-bottom:10px;line-height:1.6;">Tasarım Panosu verilerin (kartlar, listing metinleri, notlar) tarayıcında saklanıyor. Tarayıcı geçmişi/cache temizlenirse veya farklı cihaza geçersen bu veriler kaybolur. Düzenli yedek almanı öneririz.</div>
+    <button class="btn-primary" onclick="exportBackup()">📥 Yedek indir (.json)</button>
+    <button class="btn-secondary" onclick="document.getElementById('backup-file-in').click()">📤 Yedekten geri yükle</button>
+    <input type="file" id="backup-file-in" accept=".json" style="display:none" onchange="importBackup(this)">
+  </div>
+  <div class="card" style="font-size:13px; color:#888; line-height:1.8;">
+    <strong style="color:#1a1a1a; display:block; margin-bottom:8px;">Nasıl kullanılır?</strong>
+    <b>Ürün Analizci:</b> Etsy'den gördüğün ürün görselini yükle, tüm analizi otomatik al.<br>
+    <b>Listing Yazıcı:</b> Analiz sonuçlarını kopyalayıp buraya yapıştır, ürün hikayesi + bakım + iade politikası oluştur.<br><br>
+    Her analiz ~$0.002 — $5 kredi ile 2000+ görsel analizi yapabilirsin.
+  </div>
+</div>
+
+<script>
+let ab64 = null, amedia = 'image/jpeg', asonuc = null;
+
+function getKey() { return localStorage.getItem('morphen_api_key') || ''; }
+
+function parseClaudeJSON(rawText) {
+  let t = String(rawText || '').replace(/```json|```/g, '').trim();
+  const firstBrace = t.indexOf('{');
+  const lastBrace = t.lastIndexOf('}');
+  if (firstBrace >= 0 && lastBrace > firstBrace) {
+    t = t.slice(firstBrace, lastBrace + 1);
+  }
+  return JSON.parse(t);
+}
+
+window.onload = () => {
+  panoRender();
+  const k = getKey();
+  if (k) { document.getElementById('api-key').value = k; document.getElementById('api-status').textContent = 'Key kayıtlı ✓'; document.getElementById('api-status').className = 'api-status ok'; }
+  loadBrandNotes();
+};
+
+const DEFAULT_BRAND_NOTES = `MORPHEN İMZA FORMÜLÜ — "Absürd Empati"
+Resmi/kurumsal dil + sıradan/saçma içerik çarpışması. Beyin "bekle, bu da ne" diyip duruyor.
+
+Örnek: Kedi tasarımı — "Chief Chaos Officer", cüppe, scroll üzerinde sahte-yasal ifade ("Paws On Your Desk").
+
+Başka nişlere uygulama:
+- Dog lovers → "Head Of Household Security" unvanlı köpek, iş sözleşmesi formatında
+- Plant parent → "Employment Contract: Position - Decorative, Watering Required Weekly"
+- Teacher → "Certified Chaos Coordinator", diploma formatında
+- New mom/baby → "Birth Certificate" parodisi, resmi dil + masum içerik
+
+Her yeni tasarımda sor: "Bu nişe resmi/bürokratik bir twist nasıl uygulanır?"`;
+
+function loadBrandNotes() {
+  const ta = document.getElementById('marka-notlari');
+  if (!ta) return;
+  const saved = localStorage.getItem('morphen_brand_notes');
+  ta.value = saved !== null ? saved : DEFAULT_BRAND_NOTES;
+}
+
+function saveBrandNotes() {
+  const ta = document.getElementById('marka-notlari');
+  if (!ta) return;
+  localStorage.setItem('morphen_brand_notes', ta.value);
+  const status = document.getElementById('marka-notlari-status');
+  status.textContent = 'Kaydedildi ✓';
+  clearTimeout(window._brandNotesTimeout);
+  window._brandNotesTimeout = setTimeout(() => { status.textContent = ''; }, 1500);
+}
+
+function saveKey() {
+  const k = document.getElementById('api-key').value.trim();
+  if (!k.startsWith('sk-ant-')) { document.getElementById('api-status').textContent = 'Geçersiz format — "sk-ant-" ile başlamalı'; document.getElementById('api-status').className = 'api-status err'; return; }
+  localStorage.setItem('morphen_api_key', k);
+  document.getElementById('api-status').textContent = 'Key kaydedildi ✓';
+  document.getElementById('api-status').className = 'api-status ok';
+}
+
+function clearKey() {
+  if (!confirm('Anthropic API key tarayıcından silinsin mi? Tekrar kullanmak için yeniden girmen gerekecek.')) return;
+  localStorage.removeItem('morphen_api_key');
+  document.getElementById('api-key').value = '';
+  document.getElementById('api-status').textContent = 'Key silindi.';
+  document.getElementById('api-status').className = 'api-status err';
+}
+
+function exportBackup() {
+  const data = {
+    version: 1,
+    exportDate: new Date().toISOString(),
+    designs: JSON.parse(localStorage.getItem('morphen_designs') || '[]'),
+    brandNotes: localStorage.getItem('morphen_brand_notes') || ''
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'morphen_yedek_' + new Date().toISOString().slice(0,10) + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function importBackup(input) {
+  if (!input.files[0]) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      const incoming = Array.isArray(data) ? data : data.designs;
+      if (!Array.isArray(incoming)) throw new Error('Bu dosya bir Morphen yedeği değil');
+      if (data.brandNotes) {
+        localStorage.setItem('morphen_brand_notes', data.brandNotes);
+        loadBrandNotes();
+      }
+      const replace = confirm(incoming.length + ' tasarım bulundu.\n\nTAMAM = mevcut verinin üzerine yaz\nİPTAL = mevcut veriyle birleştir (aynı ID varsa yedektekini koru)');
+      if (replace) {
+        panoDesigns = incoming;
+      } else {
+        const existingIds = new Set(panoDesigns.map(d => d.id));
+        incoming.forEach(d => {
+          if (existingIds.has(d.id)) {
+            const idx = panoDesigns.findIndex(x => x.id === d.id);
+            panoDesigns[idx] = d;
+          } else {
+            panoDesigns.push(d);
+          }
+        });
+      }
+      localStorage.setItem('morphen_designs', JSON.stringify(panoDesigns));
+      panoRender();
+      alert('Yedek başarıyla yüklendi! Toplam: ' + panoDesigns.length + ' tasarım.');
+    } catch (err) {
+      alert('Hata: yedek dosyası okunamadı — ' + err.message);
+    }
+  };
+  reader.readAsText(input.files[0]);
+  input.value = '';
+}
+
+
+const panoEmojis = ['🦋','🎨','⭐','🔥','💎','🌟','🎯','✨'];
+let panoDesigns = JSON.parse(localStorage.getItem('morphen_designs') || '[]');
+let panoEditId = null;
+let panoCurrentFilter = 'hepsi';
+let panoSearchQuery = '';
+
+function panoSearchHandler(val) {
+  panoSearchQuery = val.toLowerCase().trim();
+  panoRender();
+}
+
+let panoCurrentImgs = [];
+
+async function panoUploadToCloudinary(input) {
+  if (!input.files[0]) return;
+  if (panoCurrentImgs.length >= 10) { alert('Maksimum 10 görsel ekleyebilirsin.'); return; }
+  const file = input.files[0];
+  const status = document.getElementById('pf-upload-status');
+  status.textContent = 'Yükleniyor...';
+
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('upload_preset', 'morphen_unsigned');
+  formData.append('cloud_name', 'dg1qre4mv');
+
+  try {
+    const res = await fetch('https://api.cloudinary.com/v1_1/dg1qre4mv/image/upload', { method: 'POST', body: formData });
+    const data = await res.json();
+    if (data.secure_url) {
+      panoCurrentImgs.push(data.secure_url);
+      panoRenderImgGrid();
+      status.textContent = panoCurrentImgs.length + ' görsel eklendi';
+      panoSaveDraft();
+      input.value = '';
+    } else {
+      status.textContent = 'Hata: ' + (data.error?.message || 'Yükleme başarısız');
+    }
+  } catch(e) {
+    status.textContent = 'Bağlantı hatası, tekrar dene.';
+  }
+}
+
+function panoRenderImgGrid() {
+  const grid = document.getElementById('pf-img-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  panoCurrentImgs.forEach((url, i) => {
+    grid.innerHTML += `<div style="position:relative;aspect-ratio:1;background:var(--color-background-secondary);border-radius:6px;overflow:hidden;border:0.5px solid var(--color-border-tertiary);">
+      <img src="${url}" style="width:100%;height:100%;object-fit:contain;" />
+      <button onclick="panoRemoveImg(${i})" style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,0.6);color:white;border:none;border-radius:50%;width:18px;height:18px;font-size:11px;cursor:pointer;line-height:1;">✕</button>
+    </div>`;
+  });
+  const remaining = 10 - panoCurrentImgs.length;
+  if (remaining > 0) {
+    grid.innerHTML += `<div onclick="document.getElementById('pf-img-input').click()" style="aspect-ratio:1;background:var(--color-background-secondary);border-radius:6px;border:1.5px dashed var(--color-border-secondary);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:var(--color-text-secondary);">+</div>`;
+  }
+}
+
+function panoRemoveImg(i) {
+  panoCurrentImgs.splice(i, 1);
+  panoRenderImgGrid();
+  document.getElementById('pf-upload-status').textContent = panoCurrentImgs.length + ' görsel';
+}
+
+function panoDelete(id) {
+  const d = panoDesigns.find(x => x.id === id);
+  if (!confirm('"' + (d?.ad || 'Bu tasarımı') + '" silinsin mi? Bu işlem geri alınamaz.')) return;
+  panoDesigns = panoDesigns.filter(x => x.id !== id);
+  localStorage.setItem('morphen_designs', JSON.stringify(panoDesigns));
+  if (panoEditId === id) { panoEditId = null; panoCloseModalDirect(); panoClearDraft(); }
+  panoRender();
+}
+
+function panoDownload(id) {
+  var d = panoDesigns.find(function(x) { return x.id === id; });
+  if (!d) return;
+
+  var imgs = d.imgs || (d.img ? [d.img] : []);
+  var imgHtml = '';
+  for (var i = 0; i < imgs.length; i++) {
+    imgHtml += '<img src="' + imgs[i] + '" style="max-width:220px;max-height:220px;object-fit:contain;margin:4px;border:1px solid #eee;border-radius:6px;" alt="gorsel">';
+  }
+
+  function nl2br(t) {
+    return (t || '-').split(String.fromCharCode(10)).join('<br>');
+  }
+
+  var parts = [];
+  parts.push('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>' + (d.ad || 'Tasarim') + '</title>');
+  parts.push('<style>');
+  parts.push('body{font-family:Arial,Helvetica,sans-serif;margin:2cm;color:#1a1a1a;font-size:13px;}');
+  parts.push('h1{font-size:20px;color:#1D9E75;border-bottom:2px solid #1D9E75;padding-bottom:8px;}');
+  parts.push('h2{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;margin:16px 0 4px;}');
+  parts.push('p{margin:0 0 8px;line-height:1.6;}');
+  parts.push('.sec{border-left:3px solid #1D9E75;padding-left:12px;margin:12px 0;}');
+  parts.push('.imgwrap{display:flex;flex-wrap:wrap;gap:6px;}');
+  parts.push('@media print{body{margin:1cm;}}');
+  parts.push('</style></head><body>');
+  parts.push('<h1>' + (d.ad || 'Isimsiz Tasarim') + '</h1>');
+  parts.push('<p>' + (d.durum || '') + ' &nbsp;|&nbsp; Skor: ' + (d.skor || '-') + ' &nbsp;|&nbsp; ' + (d.tarih || '') + '</p>');
+  if (imgHtml) {
+    parts.push('<h2>Gorseller</h2><div class="imgwrap">' + imgHtml + '</div>');
+  }
+  parts.push('<h2>Nis</h2><p>' + (d.nis || '-') + '</p>');
+  parts.push('<h2>Urun Tipleri</h2><p>' + ((d.urunTipleri && d.urunTipleri.length) ? d.urunTipleri.map(function(u){ return u.marka + (u.model ? ' ' + u.model : ''); }).join(', ') : '-') + '</p>');
+  parts.push('<h2>Etsy Basligi</h2><p>' + (d.baslik || '-') + '</p>');
+  parts.push('<h2>Marka Onerisi</h2><p>' + (d.marka || '-') + '</p>');
+  parts.push('<h2>Fiyat Tavsiyesi</h2><p>' + (d.fiyat || '-') + '</p>');
+  parts.push('<h2>Tagler</h2><p>' + (d.tags || '-') + '</p>');
+  parts.push('<h2>Kategori</h2><p>' + (d.kategori || '-') + '</p>');
+  parts.push('<h2>Varyantlar</h2><p>' + nl2br(d.varyant) + '</p>');
+  parts.push('<h2>Stok</h2><p>' + (d.stok || '-') + '</p>');
+  parts.push('<h2>Uretim Suresi</h2><p>' + (d.uretim || '-') + '</p>');
+  parts.push('<h2>Kargo</h2><p>' + (d.kargo || '-') + '</p>');
+  parts.push('<div class="sec"><h2>Urun Hikayesi</h2><p>' + nl2br(d.hikaye) + '</p></div>');
+  parts.push('<div class="sec"><h2>Bakim Talimatlari</h2><p>' + nl2br(d.bakim) + '</p></div>');
+  parts.push('<div class="sec"><h2>Iade ve Iptal Politikasi</h2><p>' + nl2br(d.iade) + '</p></div>');
+  parts.push('<h2>AI Prompt</h2><p style="font-family:monospace;font-size:11px;background:#f5f5f5;padding:8px;border-radius:6px;">' + (d.prompt || '-') + '</p>');
+  parts.push('<h2>Notlar</h2><p>' + nl2br(d.notlar) + '</p>');
+  parts.push('</body></html>');
+
+  var html = parts.join('');
+  var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = (d.ad || 'tasarim').replace(/[^a-zA-Z0-9_\-]/g, '_') + '.html';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+}
+
+function panoRender() {
+  const grid = document.getElementById('pano-grid');
+  let filtered = panoCurrentFilter === 'hepsi' ? panoDesigns : panoDesigns.filter(d => d.durum === panoCurrentFilter);
+  if (panoSearchQuery) {
+    filtered = filtered.filter(d =>
+      (d.ad||'').toLowerCase().includes(panoSearchQuery) ||
+      (d.nis||'').toLowerCase().includes(panoSearchQuery) ||
+      (d.tags||'').toLowerCase().includes(panoSearchQuery)
+    );
+  }
+  grid.innerHTML = '';
+  if (filtered.length === 0) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--color-text-secondary);font-size:13px;">' + (panoSearchQuery ? 'Aramana uygun tasarım bulunamadı.' : 'Henüz tasarım yok. "Yeni tasarım ekle" ile başla.') + '</div>';
+  } else {
+    filtered.forEach(d => {
+      const idx = panoDesigns.indexOf(d);
+      const emoji = panoEmojis[idx % panoEmojis.length];
+      const sc = d.durum==='Hazır'?'background:#E1F5EE;color:#085041;':d.durum==='Yayında'?'background:#E6F1FB;color:#0C447C;':'background:#FAEEDA;color:#633806;';
+      grid.innerHTML += `<div onclick="panoEdit('${d.id}')" style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;cursor:pointer;">
+        <div style="width:100%;aspect-ratio:1;background:var(--color-background-secondary);display:flex;align-items:center;justify-content:center;font-size:32px;position:relative;overflow:hidden;">${d.img ? `<img src="${d.img}" style="width:100%;height:100%;object-fit:contain;" alt="${d.ad}" />` : emoji}<span style="position:absolute;top:8px;right:8px;font-size:10px;font-weight:500;padding:2px 8px;border-radius:20px;${sc}">${d.durum}</span></div>
+        <div style="padding:10px 12px;"><div style="font-size:13px;font-weight:500;color:var(--color-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${d.ad||'İsimsiz'}</div><div style="font-size:11px;color:var(--color-text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${d.nis||'—'}</div>${(d.urunTipleri&&d.urunTipleri.length)?'<div style="font-size:10px;color:#1D9E75;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+d.urunTipleri.map(function(u){ return u.marka + (u.model ? ' ' + u.model : ''); }).join(', ')+'</div>':''}</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-top:0.5px solid var(--color-border-tertiary);"><span style="font-size:11px;font-weight:500;color:#1D9E75;">${d.skor||'—'}</span><div style="display:flex;gap:4px;"><button onclick="event.stopPropagation();panoDownload('${d.id}')" style="font-size:10px;padding:3px 8px;border-radius:6px;cursor:pointer;background:#E1F5EE;color:#085041;border:none;">İndir</button><button onclick="event.stopPropagation();panoDelete('${d.id}')" style="font-size:10px;padding:3px 8px;border-radius:6px;cursor:pointer;background:#FCEBEB;color:#922B21;border:none;">Sil</button></div><span style="font-size:11px;color:var(--color-text-tertiary);">${d.tarih||''}</span></div>
+      </div>`;
+    });
+  }
+  document.getElementById('ps-toplam').textContent = panoDesigns.length;
+  document.getElementById('ps-hazir').textContent = panoDesigns.filter(d=>d.durum==='Hazır').length;
+  document.getElementById('ps-bekliyor').textContent = panoDesigns.filter(d=>d.durum==='Bekliyor').length;
+  document.getElementById('ps-yayinda').textContent = panoDesigns.filter(d=>d.durum==='Yayında').length;
+  if (panoBulkViewOpen) panoRenderBulkView();
+}
+
+function panoFilter(type, btn) {
+  panoCurrentFilter = type;
+  document.querySelectorAll('.filter-btn-p').forEach(b => { b.classList.remove('active-p'); b.style.background=''; b.style.color=''; b.style.borderColor=''; });
+  btn.classList.add('active-p'); btn.style.background='#1D9E75'; btn.style.color='white'; btn.style.borderColor='#1D9E75';
+  panoRender();
+}
+
+let panoBulkViewOpen = false;
+
+function panoToggleBulkView() {
+  panoBulkViewOpen = !panoBulkViewOpen;
+  const view = document.getElementById('pano-bulk-view');
+  if (panoBulkViewOpen) {
+    view.style.display = 'block';
+    panoRenderBulkView();
+  } else {
+    view.style.display = 'none';
+  }
+}
+
+function panoRenderBulkView() {
+  const readyDesigns = panoDesigns.filter(function(d) { return d.durum === 'Hazır'; });
+  const content = document.getElementById('pano-bulk-content');
+  if (readyDesigns.length === 0) {
+    content.textContent = 'Henüz "Hazır" durumunda tasarım yok.';
+    return;
+  }
+  let lines = [];
+  readyDesigns.forEach(function(d, i) {
+    lines.push('=== ' + (i + 1) + '. ' + (d.ad || 'İsimsiz') + ' ===');
+    lines.push('Etsy Başlığı: ' + (d.baslik || '-'));
+    lines.push('Fiyat: ' + (d.fiyat || '-'));
+    lines.push('Marka: ' + (d.marka || '-'));
+    lines.push('Niş: ' + (d.nis || '-'));
+    lines.push('Tag\'ler: ' + (d.tags || '-'));
+    lines.push('');
+  });
+  content.textContent = lines.join('\n');
+}
+
+function panoCopyBulkView() {
+  const text = document.getElementById('pano-bulk-content').textContent;
+  navigator.clipboard.writeText(text).then(function() {
+    const btn = document.querySelector('[onclick="panoCopyBulkView()"]');
+    const original = btn.textContent;
+    btn.textContent = 'Kopyalandı ✓';
+    setTimeout(function() { btn.textContent = original; }, 2000);
+  });
+}
+
+function panoSaveDraft() {
+  const draft = {
+    ad: document.getElementById('pf-ad').value,
+    nis: document.getElementById('pf-nis').value,
+    durum: document.getElementById('pf-durum').value,
+    skor: document.getElementById('pf-skor').value,
+    baslik: document.getElementById('pf-baslik').value,
+    marka: document.getElementById('pf-marka').value,
+    fiyat: document.getElementById('pf-fiyat').value,
+    prompt: document.getElementById('pf-prompt').value,
+    notlar: document.getElementById('pf-notlar').value,
+    tags: document.getElementById('pf-tags').value,
+    kategori: document.getElementById('pf-kategori').value,
+    varyant: document.getElementById('pf-varyant').value,
+    stok: document.getElementById('pf-stok').value,
+    uretim: document.getElementById('pf-uretim').value,
+    hikaye: document.getElementById('pf-hikaye').value,
+    bakim: document.getElementById('pf-bakim').value,
+    iade: document.getElementById('pf-iade').value,
+    kargo: document.getElementById('pf-kargo').value,
+    imgs: panoCurrentImgs,
+    editId: panoEditId,
+    pt: {
+      bella: document.getElementById('pt-bella').checked,
+      bellaModel: document.getElementById('pt-bella-model').value,
+      cc: document.getElementById('pt-cc').checked,
+      ccModel: document.getElementById('pt-cc-model').value,
+      gildan: document.getElementById('pt-gildan').checked,
+      gildanModel: document.getElementById('pt-gildan-model').value,
+      rabbit: document.getElementById('pt-rabbit').checked,
+      rabbitModel: document.getElementById('pt-rabbit-model').value,
+      nextlevel: document.getElementById('pt-nextlevel').checked,
+      nextlevelModel: document.getElementById('pt-nextlevel-model').value
+    }
+  };
+  localStorage.setItem('morphen_draft', JSON.stringify(draft));
+}
+
+function panoLoadDraft() {
+  const raw = localStorage.getItem('morphen_draft');
+  if (!raw) return false;
+  try {
+    const draft = JSON.parse(raw);
+    document.getElementById('pf-ad').value = draft.ad || '';
+    document.getElementById('pf-nis').value = draft.nis || '';
+    document.getElementById('pf-durum').value = draft.durum || 'Bekliyor';
+    document.getElementById('pf-skor').value = draft.skor || '';
+    document.getElementById('pf-baslik').value = draft.baslik || '';
+    document.getElementById('pf-marka').value = draft.marka || '';
+    document.getElementById('pf-fiyat').value = draft.fiyat || '';
+    document.getElementById('pf-prompt').value = draft.prompt || '';
+    document.getElementById('pf-notlar').value = draft.notlar || '';
+    document.getElementById('pf-tags').value = draft.tags || '';
+    document.getElementById('pf-kategori').value = draft.kategori || '';
+    document.getElementById('pf-varyant').value = draft.varyant || '';
+    document.getElementById('pf-stok').value = draft.stok || '';
+    document.getElementById('pf-uretim').value = draft.uretim || '';
+    document.getElementById('pf-hikaye').value = draft.hikaye || '';
+    document.getElementById('pf-bakim').value = draft.bakim || '';
+    document.getElementById('pf-iade').value = draft.iade || '';
+    document.getElementById('pf-kargo').value = draft.kargo || '';
+    panoCurrentImgs = draft.imgs || [];
+    panoEditId = draft.editId || null;
+    if (draft.pt) {
+      document.getElementById('pt-bella').checked = !!draft.pt.bella;
+      document.getElementById('pt-bella-model').value = draft.pt.bellaModel || '';
+      document.getElementById('pt-cc').checked = !!draft.pt.cc;
+      document.getElementById('pt-cc-model').value = draft.pt.ccModel || '';
+      document.getElementById('pt-gildan').checked = !!draft.pt.gildan;
+      document.getElementById('pt-gildan-model').value = draft.pt.gildanModel || '';
+      document.getElementById('pt-rabbit').checked = !!draft.pt.rabbit;
+      document.getElementById('pt-rabbit-model').value = draft.pt.rabbitModel || '';
+      document.getElementById('pt-nextlevel').checked = !!draft.pt.nextlevel;
+      document.getElementById('pt-nextlevel-model').value = draft.pt.nextlevelModel || '';
+    }
+    panoRenderImgGrid();
+    return true;
+  } catch(e) { return false; }
+}
+
+function panoClearDraft() {
+  localStorage.removeItem('morphen_draft');
+}
+
+function panoOpenModal() {
+  const hasDraft = panoLoadDraft();
+  if (hasDraft) {
+    document.getElementById('pano-modal-title').textContent = panoEditId ? 'Tasarımı düzenle (taslak geri yüklendi)' : 'Yeni tasarım ekle (taslak geri yüklendi)';
+  } else {
+    panoEditId = null;
+    document.getElementById('pano-modal-title').textContent = 'Yeni tasarım ekle';
+    ['pf-ad','pf-nis','pf-baslik','pf-marka','pf-fiyat','pf-prompt','pf-notlar','pf-skor','pf-tags','pf-kategori','pf-varyant','pf-stok','pf-uretim','pf-hikaye','pf-bakim','pf-iade','pf-kargo'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('pf-durum').value = 'Bekliyor';
+    ['pt-bella','pt-cc','pt-gildan','pt-rabbit','pt-nextlevel'].forEach(id => document.getElementById(id).checked = false);
+  ['pt-bella-model','pt-cc-model','pt-gildan-model','pt-rabbit-model','pt-nextlevel-model'].forEach(id => document.getElementById(id).value = '');
+    panoCurrentImgs=[];
+    panoRenderImgGrid();
+  }
+  if(document.getElementById('pf-upload-status')) document.getElementById('pf-upload-status').textContent = panoCurrentImgs.length > 0 ? panoCurrentImgs.length + ' görsel' : '';
+  document.getElementById('pano-modal-delete-btn').style.display = panoEditId ? 'block' : 'none';
+  document.getElementById('pano-modal-bg').style.display = 'flex';
+}
+
+function panoOpenModalFresh() {
+  panoClearDraft();
+  panoEditId = null;
+  document.getElementById('pano-modal-title').textContent = 'Yeni tasarım ekle';
+  ['pf-ad','pf-nis','pf-baslik','pf-marka','pf-fiyat','pf-prompt','pf-notlar','pf-skor','pf-tags','pf-kategori','pf-varyant','pf-stok','pf-uretim','pf-hikaye','pf-bakim','pf-iade','pf-kargo'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('pf-durum').value = 'Bekliyor';
+  ['pt-bella','pt-cc','pt-gildan','pt-rabbit','pt-nextlevel'].forEach(id => document.getElementById(id).checked = false);
+  ['pt-bella-model','pt-cc-model','pt-gildan-model','pt-rabbit-model','pt-nextlevel-model'].forEach(id => document.getElementById(id).value = '');
+  panoCurrentImgs=[];
+  panoRenderImgGrid();
+  if(document.getElementById('pf-upload-status')) document.getElementById('pf-upload-status').textContent='';
+  document.getElementById('pano-modal-delete-btn').style.display = 'none';
+  document.getElementById('pano-modal-bg').style.display = 'flex';
+}
+
+function panoEdit(id) {
+  const d = panoDesigns.find(x => x.id === id);
+  if (!d) return;
+  panoEditId = id;
+  document.getElementById('pano-modal-title').textContent = 'Tasarımı düzenle';
+  document.getElementById('pf-ad').value = d.ad||'';
+  document.getElementById('pf-nis').value = d.nis||'';
+  document.getElementById('pf-durum').value = d.durum||'Bekliyor';
+  const ut = d.urunTipleri||[];
+  function findUT(marka) { return ut.find(function(x) { return x.marka === marka; }); }
+  const utBella = findUT('Bella Canvas');
+  const utCc = findUT('Comfort Colors');
+  const utGildan = findUT('Gildan');
+  const utRabbit = findUT('Rabbit Skins');
+  const utNextlevel = findUT('Next Level');
+  document.getElementById('pt-bella').checked = !!utBella;
+  document.getElementById('pt-bella-model').value = utBella ? utBella.model : '';
+  document.getElementById('pt-cc').checked = !!utCc;
+  document.getElementById('pt-cc-model').value = utCc ? utCc.model : '';
+  document.getElementById('pt-gildan').checked = !!utGildan;
+  document.getElementById('pt-gildan-model').value = utGildan ? utGildan.model : '';
+  document.getElementById('pt-rabbit').checked = !!utRabbit;
+  document.getElementById('pt-rabbit-model').value = utRabbit ? utRabbit.model : '';
+  document.getElementById('pt-nextlevel').checked = !!utNextlevel;
+  document.getElementById('pt-nextlevel-model').value = utNextlevel ? utNextlevel.model : '';
+  document.getElementById('pf-skor').value = d.skor||'';
+  document.getElementById('pf-baslik').value = d.baslik||'';
+  document.getElementById('pf-marka').value = d.marka||'';
+  document.getElementById('pf-fiyat').value = d.fiyat||'';
+  document.getElementById('pf-prompt').value = d.prompt||'';
+  document.getElementById('pf-notlar').value = d.notlar||'';
+  document.getElementById('pf-tags').value = d.tags||'';
+  document.getElementById('pf-kategori').value = d.kategori||'';
+  document.getElementById('pf-varyant').value = d.varyant||'';
+  document.getElementById('pf-stok').value = d.stok||'';
+  document.getElementById('pf-uretim').value = d.uretim||'';
+  document.getElementById('pf-hikaye').value = d.hikaye||'';
+  document.getElementById('pf-bakim').value = d.bakim||'';
+  document.getElementById('pf-iade').value = d.iade||'';
+  document.getElementById('pf-kargo').value = d.kargo||'';
+  panoCurrentImgs = d.imgs||[];
+  panoRenderImgGrid();
+  document.getElementById('pf-upload-status').textContent = panoCurrentImgs.length > 0 ? panoCurrentImgs.length + ' görsel' : '';
+  document.getElementById('pano-modal-delete-btn').style.display = 'block';
+  document.getElementById('pano-modal-bg').style.display = 'flex';
+  panoSaveDraft();
+}
+
+function panoSave() {
+  const urunTipleri = [];
+  if (document.getElementById('pt-bella').checked) urunTipleri.push({marka:'Bella Canvas', model: document.getElementById('pt-bella-model').value.trim()});
+  if (document.getElementById('pt-cc').checked) urunTipleri.push({marka:'Comfort Colors', model: document.getElementById('pt-cc-model').value.trim()});
+  if (document.getElementById('pt-gildan').checked) urunTipleri.push({marka:'Gildan', model: document.getElementById('pt-gildan-model').value.trim()});
+  if (document.getElementById('pt-rabbit').checked) urunTipleri.push({marka:'Rabbit Skins', model: document.getElementById('pt-rabbit-model').value.trim()});
+  if (document.getElementById('pt-nextlevel').checked) urunTipleri.push({marka:'Next Level', model: document.getElementById('pt-nextlevel-model').value.trim()});
+  const d = { id: panoEditId||Date.now().toString(), imgs: [...panoCurrentImgs], img: panoCurrentImgs[0]||null, urunTipleri: urunTipleri, ad: document.getElementById('pf-ad').value.trim(), nis: document.getElementById('pf-nis').value.trim(), durum: document.getElementById('pf-durum').value, skor: document.getElementById('pf-skor').value.trim(), baslik: document.getElementById('pf-baslik').value.trim(), marka: document.getElementById('pf-marka').value.trim(), fiyat: document.getElementById('pf-fiyat').value.trim(), prompt: document.getElementById('pf-prompt').value.trim(), notlar: document.getElementById('pf-notlar').value.trim(), tags: document.getElementById('pf-tags').value.trim(), kategori: document.getElementById('pf-kategori').value.trim(), varyant: document.getElementById('pf-varyant').value.trim(), stok: document.getElementById('pf-stok').value.trim(), uretim: document.getElementById('pf-uretim').value.trim(), hikaye: document.getElementById('pf-hikaye').value.trim(), bakim: document.getElementById('pf-bakim').value.trim(), iade: document.getElementById('pf-iade').value.trim(), kargo: document.getElementById('pf-kargo').value.trim(), tarih: panoEditId ? panoDesigns.find(x=>x.id===panoEditId)?.tarih : new Date().toLocaleDateString('tr-TR') };
+  if (panoEditId) { const idx = panoDesigns.findIndex(x=>x.id===panoEditId); panoDesigns[idx]=d; } else { panoDesigns.unshift(d); }
+  localStorage.setItem('morphen_designs', JSON.stringify(panoDesigns));
+  panoClearDraft();
+  panoCloseModalDirect();
+  panoRender();
+}
+
+function panoCloseModal(e) { if (e.target===document.getElementById('pano-modal-bg')) panoCloseModalDirect(); }
+function panoCloseModalDirect() { document.getElementById('pano-modal-bg').style.display='none'; }
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('page-' + tab).classList.add('active');
+}
+
+function switchTabProgrammatic(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const tabs = document.querySelectorAll('.tab');
+  const tabOrder = ['analizci','listing','pano','konum','ayarlar'];
+  const idx = tabOrder.indexOf(tab);
+  if (idx >= 0 && tabs[idx]) tabs[idx].classList.add('active');
+  document.getElementById('page-' + tab).classList.add('active');
+}
+
+function aEv(e, cls) { e.preventDefault(); document.getElementById('a-zone').className = 'upload-zone ' + cls; }
+function aDrop(e) { e.preventDefault(); document.getElementById('a-zone').className = 'upload-zone'; if (e.dataTransfer.files[0]) aProcess(e.dataTransfer.files[0]); }
+function aLoadFile(i) { if (i.files[0]) aProcess(i.files[0]); }
+function aProcess(file) {
+  amedia = file.type || 'image/jpeg';
+  const r = new FileReader();
+  r.onload = e => {
+    ab64 = e.target.result.split(',')[1];
+    document.getElementById('a-preview-img').src = e.target.result;
+    document.getElementById('a-preview-name').textContent = file.name;
+    document.getElementById('a-upload-card').style.display = 'none';
+    document.getElementById('a-preview').style.display = 'block';
+    document.getElementById('a-result').style.display = 'none';
+    document.getElementById('a-copy').style.display = 'none';
+  };
+  r.readAsDataURL(file);
+}
+
+function buildColorCatalogText() {
+  return Object.entries(colorPalettes).map(([product, colors]) => {
+    return product + ': ' + Object.keys(colors).join(', ');
+  }).join('\n');
+}
+
+function findColorHex(markaText, colorName) {
+  if (!markaText || !colorName) return null;
+  const markaLower = markaText.toLowerCase();
+  let bestKey = null, bestScore = 0;
+  for (const key of Object.keys(colorPalettes)) {
+    const keyWords = key.toLowerCase().split(/\s+/);
+    let score = 0;
+    keyWords.forEach(w => { if (w.length > 2 && markaLower.includes(w)) score++; });
+    (markaLower.match(/\d+/g) || []).forEach(d => { if (key.includes(d)) score += 3; });
+    if (score > bestScore) { bestScore = score; bestKey = key; }
+  }
+  if (!bestKey) return null;
+  const palette = colorPalettes[bestKey];
+  const colorLower = colorName.toLowerCase().trim();
+  for (const cName of Object.keys(palette)) {
+    if (cName.toLowerCase() === colorLower) return palette[cName];
+  }
+  for (const cName of Object.keys(palette)) {
+    if (cName.toLowerCase().includes(colorLower) || colorLower.includes(cName.toLowerCase())) return palette[cName];
+  }
+  return null;
+}
+
+async function analyze() {
+  const key = getKey();
+  if (!key) { alert('API key bulunamadı — Ayarlar sekmesinden gir.'); return; }
+  document.getElementById('a-preview').style.display = 'none';
+  document.getElementById('a-loading').style.display = 'block';
+  document.getElementById('a-result').style.display = 'none';
+  document.getElementById('a-copy').style.display = 'none';
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 2800,
+        messages: [{ role: 'user', content: [
+          { type: 'image', source: { type: 'base64', media_type: amedia, data: ab64 } },
+          { type: 'text', text: `Bu bir Etsy tişört ürün görseli. Etsy'de ne sattığını bilen, pazar dinamiklerini anlayan biri gibi analiz et.\n\nMorphen'in Rexven'den siparis edebildigi urunler SADECE sunlardir, marka_onerisi alaninda SADECE bu listeden sec, baska marka onerme:\n- Bella Canvas: 100B/134B Baby Bodysuit, 3001B/3413B Baby Tee, 3001T/3413T Toddler Tee, Micro Rib Baby Tee 1010, Micro Rib Cropped Racer Tank 1019, Micro Rib Long Sleeve Baby Tee 1501, Micro Rib Raglan Baby Tee 1201, Micro Rib Spaghetti Strap Tank, Unisex Adult T-Shirt 3001/3001CVC, Women V-Neck 6405/6405CVC, Youth T-Shirt 3001Y/3001YCVC, Youth Tank 3480Y\n- Comfort Colors: ColorBlast T-Shirt 1745, Boxy Tee, Garment-Dyed Heavyweight Tee, Long Sleeve Pocket T-Shirt 4410, Long Sleeve T-Shirt 6014, Sweatshirt 1566, T-Shirt 1717, Youth T-Shirt 9018\n- Gildan: Baby Tee/Youth T-Shirt 5000B, Toddler T-Shirt 5100P, Unisex Hoodie 18500, Unisex Sweatshirt 18000, Unisex T-Shirt 64000, Youth Sweatshirt 18000B, Youth Hoodie 18500B, Youth T-Shirt 64000B\n- Rabbit Skins: Infant Baby Rib Bodysuit 4400, Baby Tee 3322, Toddler Sweatshirt 3317, Toddler T-Shirt 3321, Toddler Tank 3323\n- Next Level: Women's Ideal Crop Top 1580\n\nMORPHEN RENK KATALOĞU — her ürünün Rexven'de GERÇEKTEN mevcut olan renk isimleri (renk_onerisi alaninda SADECE marka_onerisi'nde sectigin urunun bu listedeki renklerinden birini sec, tam ismiyle yaz, baska renk icat etme):\n${buildColorCatalogText()}\n\nGörsel ipuçları:\n- Gökkuşağı renkleri → LGBT / Pride nişi — mutlaka yaz\n- Amerikan bayrağı, yıldız, kartal → Patriotic / 4th of July nişi\n- Çiçek, botanik → Floral / Nature lovers nişi\n- Marka logosu taklidi (Nike, Disney vb.) → Parody + telif riski var\n- DNA, bilim sembolleri → Science lovers nişi\n- Evcil hayvan → Pet lovers nişi\n- Noel, kar tanesi → Christmas / Holiday nişi\n- Kalp, çift, evlilik → Romance / Wedding nişi\n- Anne, baba, çocuk → Family / Parenting nişi\n- Birden fazla niş varsa hepsini yaz — çift niş stratejisi çok değerli\n\nMevsimsellik, fiyat ve marka tavsiyesi ver. Sonuçları samimi akıcı Türkçeyle yaz.\n\nSadece JSON ver:\n{"nis":"nişler virgülle","tasarim_stili":"3-5 kelime","kim_alir":"arkadaşına anlatır gibi 1-2 cümle","strateji_notu":"güçlü/zayıf yön samimi","mevsimsellik":"ne zaman zirve, evergreen mi","fiyat_tavsiyesi":"fiyat bandı ve neden","etsy_basligi":"SEO başlık max 140 karakter İngilizce pipe ile","marka_onerisi":"yukarida verilen Morphen urun listesinden SADECE birini sec, tam urun kodu ve modeliyle birlikte yaz (orn: Comfort Colors T-Shirt 1717), kisa gerekce ekle","renk_onerisi":"marka_onerisi'nde sectigin urunun RENK KATALOĞU'ndaki renklerinden tasarima en uygun birini tam ismiyle yaz (orn: Blue Jean), kisa gerekce ekle","alternatif_konsept":"aynı niş farklı motif 2-3 fikir","potansiyel_skoru":"1-10 puan ver. Niş rekabeti, mevsimsellik gücü, çift niş, telif riski, evergreen mi faktörlerini değerlendir. Puan + 1-2 cümle gerekçe. Örn: 7/10 — çift niş güçlü ama rekabet yoğun.","tasarim_gelistirme":"Bu tasarıma ne eklenirse veya değiştirilirse daha çok satar? Somut öneriler ver — hangi slogan, hangi element, hangi renk değişikliği skoru yukarı taşır. 2-3 madde, direkt ve uygulanabilir.","ai_prompt":"Bu tasarımın nişi ve stiline uygun, sıfırdan özgün bir tasarım üretmek için AI görsel araçlarında (Midjourney, Canva, Adobe Firefly, DALL-E) kullanılabilecek İngilizce prompt yaz. Detaylı, profesyonel, kopyala-yapıştır hazır olsun. Stil, renk paleti, kompozisyon, mood hepsini dahil et.","ai_prompt_gelistirilmis":"ai_prompt alanindaki promptun gelistirilmis halini yaz. tasarim_gelistirme alanindaki onerileri (slogan, renk, element degisiklikleri) o promptun icine dogal ve akici sekilde yedir, yeni cumleler ekleyerek, celiski yaratmadan. Sonuc tek parca, akici, kopyala-yapistir hazir Ingilizce prompt olsun, madde isareti kullanma.","risk":"telif riski varsa yaz yoksa null"}` }
+        ]}] })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    const s = parseClaudeJSON(data.content.map(i => i.text||'').join(''));
+    asonuc = s;
+    document.getElementById('r-nis').textContent = s.nis;
+    document.getElementById('r-stil').textContent = s.tasarim_stili;
+    document.getElementById('r-kim').textContent = s.kim_alir;
+    document.getElementById('r-strateji').textContent = s.strateji_notu;
+    document.getElementById('r-mevsim').textContent = s.mevsimsellik||'';
+    document.getElementById('r-fiyat').textContent = s.fiyat_tavsiyesi||'';
+    document.getElementById('r-baslik').textContent = s.etsy_basligi||'';
+    document.getElementById('r-marka').textContent = s.marka_onerisi||'';
+    const renkHex = findColorHex(s.marka_onerisi, s.renk_onerisi);
+    document.getElementById('r-renk-text').textContent = s.renk_onerisi || '';
+    document.getElementById('r-renk-swatch').style.background = renkHex ? ('#' + renkHex) : '#eee';
+    document.getElementById('r-alternatif').textContent = s.alternatif_konsept||'';
+    document.getElementById('r-skor').textContent = s.potansiyel_skoru||'';
+    document.getElementById('r-gelistirme').textContent = s.tasarim_gelistirme||'';
+    document.getElementById('r-aiprompt').textContent = s.ai_prompt||'';
+    document.getElementById('r-aiprompt-gelistirilmis').textContent = s.ai_prompt_gelistirilmis||'';
+    if (s.risk && s.risk!=='null') { document.getElementById('r-risk').textContent = s.risk; document.getElementById('r-risk-row').style.display = 'flex'; } else { document.getElementById('r-risk-row').style.display = 'none'; }
+    const ct = `Niş: ${s.nis}\nTasarım stili: ${s.tasarim_stili}\nKim alır: ${s.kim_alir}\nStrateji notu: ${s.strateji_notu}\nMevsimsellik: ${s.mevsimsellik||''}\nFiyat tavsiyesi: ${s.fiyat_tavsiyesi||''}\nEtsy başlığı: ${s.etsy_basligi||''}\nMarka önerisi: ${s.marka_onerisi||''}\nRenk önerisi: ${s.renk_onerisi||''}${renkHex?' (#'+renkHex+')':''}\nAlternatif konsept: ${s.alternatif_konsept||''}\nPotansiyel skoru: ${s.potansiyel_skoru||''}
+Tasarım geliştirme: ${s.tasarim_gelistirme||''}
+AI prompt: ${s.ai_prompt||''}
+AI prompt (geliştirilmiş): ${s.ai_prompt_gelistirilmis||''}${s.risk&&s.risk!=='null'?'\nRisk: '+s.risk:''}`;
+    document.getElementById('a-copy-box').textContent = ct;
+    const onerilenMarka = s.marka_onerisi || 'önerilen modeli';
+    const onerilenRenk = s.renk_onerisi || 'uygun bir renk';
+    document.getElementById('mockup-steps').innerHTML = `1. Printful'u aç → Mockup Generator → <b>${onerilenMarka}</b> seç (Printful'da yoksa en yakın eşleneni seç)<br>2. Renk: <b>${onerilenRenk}</b> seç (Rexven'de gerçekten mevcut)<br>3. Tasarım PNG'ni yükle → pozisyonu ayarla<br>4. Mockup'ı indir → Etsy listing'ine ekle`;
+    document.getElementById('a-loading').style.display = 'none';
+    document.getElementById('a-result').style.display = 'block';
+    document.getElementById('a-copy').style.display = 'block';
+    document.getElementById('mockup-card').style.display = 'block';
+  } catch(e) {
+    document.getElementById('a-loading').style.display = 'none';
+    document.getElementById('a-preview').style.display = 'block';
+    alert('Hata: ' + e.message);
+  }
+}
+
+function aCopyText() {
+  navigator.clipboard.writeText(document.getElementById('a-copy-box').textContent).then(() => {
+    const b = document.getElementById('a-copy-btn');
+    b.textContent = 'Kopyalandı ✓'; b.classList.add('copied');
+    setTimeout(() => { b.textContent = 'Kopyala'; b.classList.remove('copied'); }, 2000);
+  });
+}
+
+function aReset() {
+  ab64 = null; asonuc = null;
+  document.getElementById('a-upload-card').style.display = 'block';
+  document.getElementById('a-preview').style.display = 'none';
+  document.getElementById('a-result').style.display = 'none';
+  document.getElementById('a-copy').style.display = 'none';
+  document.getElementById('a-loading').style.display = 'none';
+  document.getElementById('a-file-in').value = '';
+  document.getElementById('mockup-card').style.display = 'none';
+}
+
+function sendToListing() {
+  try {
+    if (!asonuc) { alert('Önce bir ürün analizi yap.'); return; }
+    let urunAdi = '';
+    if (asonuc.etsy_basligi) {
+      urunAdi = String(asonuc.etsy_basligi).split('|')[0].trim();
+    }
+    const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+    setVal('l-urun', urunAdi);
+    setVal('l-nis', asonuc.nis);
+    setVal('l-hedef', asonuc.kim_alir);
+    setVal('l-stil', asonuc.tasarim_stili);
+    const renkNot = asonuc.renk_onerisi ? ('Renk: ' + asonuc.renk_onerisi) : '';
+    const notBirlesik = [asonuc.tasarim_gelistirme, renkNot].filter(Boolean).join('\n');
+    setVal('l-not', notBirlesik);
+
+    const markaSel = document.getElementById('l-marka');
+    const oneri = String(asonuc.marka_onerisi || '').toLowerCase();
+    const oneriDigits = (oneri.match(/\d+/g) || []);
+    if (markaSel && oneri) {
+      let bestIdx = -1, bestScore = 0;
+      for (let i = 0; i < markaSel.options.length; i++) {
+        const optText = markaSel.options[i].textContent.toLowerCase();
+        let score = 0;
+        optText.split(/[\s\/]+/).forEach(word => {
+          if (word.length > 2 && oneri.includes(word)) score += 1;
+        });
+        oneriDigits.forEach(d => { if (optText.includes(d)) score += 3; });
+        if (score > bestScore) { bestScore = score; bestIdx = i; }
+      }
+      if (bestIdx >= 0) markaSel.selectedIndex = bestIdx;
+    }
+
+    switchTabProgrammatic('listing');
+  } catch (err) {
+    alert('Aktarım sırasında hata oluştu: ' + err.message);
+  }
+}
+
+async function generateListing() {
+  const key = getKey();
+  if (!key) { alert('API key bulunamadı — Ayarlar sekmesinden gir.'); return; }
+  const urun = document.getElementById('l-urun').value.trim();
+  const nis = document.getElementById('l-nis').value.trim();
+  if (!urun || !nis) { alert('Ürün adı ve niş zorunlu!'); return; }
+  const marka = document.getElementById('l-marka').value;
+  const hedef = document.getElementById('l-hedef').value.trim();
+  const stil = document.getElementById('l-stil').value.trim();
+  const iptal = document.getElementById('l-iptal').value;
+  const not = document.getElementById('l-not').value.trim();
+  document.getElementById('l-spinner').style.display = 'block';
+  document.getElementById('l-gen-label').style.display = 'none';
+  document.getElementById('l-gen-btn').disabled = true;
+  document.getElementById('l-result').style.display = 'none';
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 2000,
+        messages: [{ role: 'user', content: `Sen Morphen markası için Etsy listing metinleri yazıyorsun. Morphen, dönüşüm temalı bir t-shirt markası — kelebek logosu var, minimal ve zarif estetik.\n\nÜrün: ${urun}\nMarka: ${marka}\nNiş: ${nis}\nHedef: ${hedef||'belirtilmedi'}\nStil: ${stil||'belirtilmedi'}\nİptal: ${iptal} saat\n${not?'Not: '+not:''}\n\nTürkçe ve İngilizce (önce TR, sonra --- sonra EN). Samimi, sıcak, Morphen tonu.\n\nSadece JSON:\n{"hikaye":"ürün hikayesi TR --- EN","bakim":"bakım talimatları TR --- EN","iade":"iptal iade politikası TR --- EN"}` }] })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    const r = parseClaudeJSON(data.content.map(i=>i.text||'').join(''));
+    document.getElementById('l-hikaye').textContent = r.hikaye;
+    document.getElementById('l-bakim').textContent = r.bakim;
+    document.getElementById('l-iade').textContent = r.iade;
+    document.getElementById('l-result').style.display = 'block';
+    document.getElementById('l-form-card').style.display = 'none';
+  } catch(e) { alert('Hata: ' + e.message); }
+  finally {
+    document.getElementById('l-spinner').style.display = 'none';
+    document.getElementById('l-gen-label').style.display = 'inline';
+    document.getElementById('l-gen-btn').disabled = false;
+  }
+}
+
+function copyBlock(id, btnId) {
+  const el = event.target.closest('button');
+  navigator.clipboard.writeText(document.getElementById(id).textContent).then(() => {
+    el.textContent = 'Kopyalandı ✓'; el.classList.add('copied');
+    setTimeout(() => { el.textContent = 'Kopyala'; el.classList.remove('copied'); }, 2000);
+  });
+}
+
+function copyAllListing() {
+  const all = `=== ÜRÜN HİKAYESİ ===\n${document.getElementById('l-hikaye').textContent}\n\n=== BAKIM TALİMATLARI ===\n${document.getElementById('l-bakim').textContent}\n\n=== İPTAL & İADE POLİTİKASI ===\n${document.getElementById('l-iade').textContent}`;
+  const btn = event.target.closest('button');
+  navigator.clipboard.writeText(all).then(() => { btn.textContent = 'Tümü kopyalandı ✓'; setTimeout(() => { btn.textContent = 'Tümünü kopyala'; }, 2000); });
+}
+
+function lReset() {
+  document.getElementById('l-form-card').style.display = 'block';
+  document.getElementById('l-result').style.display = 'none';
+}
+
+
+
+let knCurrentView = 'view1';
+let knSelectedLayerId = null;
+let knLayerCounter = 0;
+
+const KN_VIEW_COUNT = 10;
+const KN_VIEW_KEYS = Array.from({length: KN_VIEW_COUNT}, (_, i) => 'view' + (i + 1));
+const knLayers = {};
+const knMockups = {};
+KN_VIEW_KEYS.forEach(k => { knLayers[k] = []; knMockups[k] = null; });
+const knViewLabels = {};
+KN_VIEW_KEYS.forEach((k, i) => { knViewLabels[k] = 'Görünüm ' + (i + 1); });
+
+function knRenderViewButtons() {
+  const container = document.getElementById('kn-view-buttons');
+  container.innerHTML = KN_VIEW_KEYS.map((k, i) =>
+    '<button class="kn-view-btn' + (i===0?' active':'') + '" data-view="' + k + '" onclick="knSwitchView(\'' + k + '\', this)">📷 Görünüm ' + (i+1) + '</button>'
+  ).join('');
+}
+knRenderViewButtons();
+
+function knLoadMockup(input) {
+  if (!input.files[0]) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    knMockups[knCurrentView] = e.target.result;
+    knOriginalMockups[knCurrentView] = e.target.result;
+    knCurrentMaskImg = null;
+    const overlay = document.getElementById('kn-mask-overlay');
+    if (overlay) overlay.style.display = 'none';
+    knRenderMockupBg();
+  };
+  reader.readAsDataURL(input.files[0]);
+  input.value = '';
+}
+
+function knRenderMockupBg() {
+  const bg = document.getElementById('kn-mockup-bg');
+  const placeholder = document.getElementById('kn-mockup-placeholder');
+  if (knMockups[knCurrentView]) {
+    bg.style.backgroundImage = 'url(' + knMockups[knCurrentView] + ')';
+    placeholder.style.display = 'none';
+  } else {
+    bg.style.backgroundImage = 'none';
+    placeholder.style.display = 'flex';
+  }
+}
+
+function knSwitchView(view, btn) {
+  knCurrentView = view;
+  document.querySelectorAll('.kn-view-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  knCurrentMaskImg = null;
+  const overlay = document.getElementById('kn-mask-overlay');
+  if (overlay) overlay.style.display = 'none';
+  knRenderMockupBg();
+  knRenderLayers();
+  knSelectLayer(null);
+}
+
+function knLoadFiles(input) {
+  const files = Array.from(input.files);
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      knAddLayer(e.target.result, file.name);
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value = '';
+}
+
+function drawAffineTriangle(ctx, img, srcPts, dstPts) {
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(dstPts[0][0], dstPts[0][1]);
+  ctx.lineTo(dstPts[1][0], dstPts[1][1]);
+  ctx.lineTo(dstPts[2][0], dstPts[2][1]);
+  ctx.closePath();
+  ctx.clip();
+  const [x0, y0] = srcPts[0], [x1, y1] = srcPts[1], [x2, y2] = srcPts[2];
+  const [u0, v0] = dstPts[0], [u1, v1] = dstPts[1], [u2, v2] = dstPts[2];
+  const denom = (x1 - x0) * (y2 - y0) - (x2 - x0) * (y1 - y0);
+  if (Math.abs(denom) > 1e-6) {
+    const a = ((u1 - u0) * (y2 - y0) - (u2 - u0) * (y1 - y0)) / denom;
+    const b = ((v1 - v0) * (y2 - y0) - (v2 - v0) * (y1 - y0)) / denom;
+    const c = ((u2 - u0) * (x1 - x0) - (u1 - u0) * (x2 - x0)) / denom;
+    const d = ((v2 - v0) * (x1 - x0) - (v1 - v0) * (x2 - x0)) / denom;
+    const e = u0 - a * x0 - c * y0;
+    const f = v0 - b * x0 - d * y0;
+    ctx.transform(a, b, c, d, e, f);
+    ctx.drawImage(img, 0, 0);
+  }
+  ctx.restore();
+}
+
+function drawWarpedImage(ctx, img, corners) {
+  const iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height;
+  drawAffineTriangle(ctx, img, [[0, 0], [iw, 0], [0, ih]], [[corners.tl.x, corners.tl.y], [corners.tr.x, corners.tr.y], [corners.bl.x, corners.bl.y]]);
+  drawAffineTriangle(ctx, img, [[iw, 0], [iw, ih], [0, ih]], [[corners.tr.x, corners.tr.y], [corners.br.x, corners.br.y], [corners.bl.x, corners.bl.y]]);
+}
+
+function knRectToCorners(layer) {
+  const cx = layer.x + layer.w / 2, cy = layer.y + layer.h / 2;
+  const rad = layer.rotation * Math.PI / 180;
+  const cos = Math.cos(rad), sin = Math.sin(rad);
+  function rot(px, py) {
+    const dx = px - cx, dy = py - cy;
+    return { x: cx + dx * cos - dy * sin, y: cy + dx * sin + dy * cos };
+  }
+  return {
+    tl: rot(layer.x, layer.y),
+    tr: rot(layer.x + layer.w, layer.y),
+    br: rot(layer.x + layer.w, layer.y + layer.h),
+    bl: rot(layer.x, layer.y + layer.h)
+  };
+}
+
+function knAddLayer(src, name) {
+  const img = new Image();
+  img.onload = () => {
+    const id = 'kn_layer_' + (++knLayerCounter);
+    const naturalRatio = img.naturalWidth / img.naturalHeight;
+    const maxDim = 200;
+    let w, h;
+    if (naturalRatio >= 1) {
+      w = maxDim;
+      h = maxDim / naturalRatio;
+    } else {
+      h = maxDim;
+      w = maxDim * naturalRatio;
+    }
+    const layer = {
+      id, src, name: name || 'Tasarım',
+      x: (420 - w) / 2, y: (520 - h) / 2, w, h, rotation: 0, opacity: 100,
+      corners: null, blend: 'normal'
+    };
+    knLayers[knCurrentView].push(layer);
+    knRenderLayers();
+    knSelectLayer(id);
+  };
+  img.src = src;
+}
+
+function knRenderLayers() {
+  const container = document.getElementById('kn-design-container');
+  container.innerHTML = '';
+  knLayers[knCurrentView].forEach(layer => {
+    if (layer.corners) {
+      knRenderWarpedLayer(container, layer);
+    } else {
+      knRenderRectLayer(container, layer);
+    }
+  });
+
+  knRenderLayerList();
+}
+
+function knRenderRectLayer(container, layer) {
+  const div = document.createElement('div');
+  div.className = 'kn-design-layer' + (layer.id === knSelectedLayerId ? ' selected' : '');
+  div.id = layer.id;
+  div.style.left = layer.x + 'px';
+  div.style.top = layer.y + 'px';
+  div.style.width = layer.w + 'px';
+  div.style.height = layer.h + 'px';
+  div.style.transform = 'rotate(' + layer.rotation + 'deg)';
+  div.style.opacity = layer.opacity / 100;
+  div.style.mixBlendMode = layer.blend === 'multiply' ? 'multiply' : 'normal';
+
+  const innerImg = document.createElement('img');
+  innerImg.src = layer.src;
+  innerImg.alt = layer.name;
+  div.appendChild(innerImg);
+
+  if (layer.id === knSelectedLayerId) {
+    const resizeHandle = document.createElement('div');
+    resizeHandle.className = 'kn-resize-handle';
+    resizeHandle.onmousedown = (e) => knStartResize(e, layer.id);
+    div.appendChild(resizeHandle);
+
+    const rotateHandle = document.createElement('div');
+    rotateHandle.className = 'kn-rotate-handle';
+    rotateHandle.onmousedown = (e) => knStartRotate(e, layer.id);
+    div.appendChild(rotateHandle);
+  }
+
+  div.onmousedown = (e) => {
+    if (e.target.classList.contains('kn-resize-handle') || e.target.classList.contains('kn-rotate-handle')) return;
+    knSelectLayer(layer.id);
+    knStartDrag(e, layer.id);
+  };
+
+  container.appendChild(div);
+}
+
+function knRenderWarpedLayer(container, layer) {
+  const c = layer.corners;
+  const xs = [c.tl.x, c.tr.x, c.br.x, c.bl.x];
+  const ys = [c.tl.y, c.tr.y, c.br.y, c.bl.y];
+  const minX = Math.min(...xs), maxX = Math.max(...xs);
+  const minY = Math.min(...ys), maxY = Math.max(...ys);
+  const bw = Math.max(1, maxX - minX), bh = Math.max(1, maxY - minY);
+
+  const wrap = document.createElement('div');
+  wrap.id = layer.id;
+  wrap.style.position = 'absolute';
+  wrap.style.left = minX + 'px';
+  wrap.style.top = minY + 'px';
+  wrap.style.width = bw + 'px';
+  wrap.style.height = bh + 'px';
+  wrap.style.opacity = layer.opacity / 100;
+  wrap.style.mixBlendMode = layer.blend === 'multiply' ? 'multiply' : 'normal';
+  wrap.style.cursor = 'move';
+  if (layer.id === knSelectedLayerId) wrap.style.outline = '2px dashed #378ADD';
+
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.round(bw);
+  canvas.height = Math.round(bh);
+  canvas.style.width = '100%';
+  canvas.style.height = '100%';
+  wrap.appendChild(canvas);
+
+  const cctx = canvas.getContext('2d');
+  const img = new Image();
+  img.onload = () => {
+    const local = {
+      tl: { x: c.tl.x - minX, y: c.tl.y - minY },
+      tr: { x: c.tr.x - minX, y: c.tr.y - minY },
+      br: { x: c.br.x - minX, y: c.br.y - minY },
+      bl: { x: c.bl.x - minX, y: c.bl.y - minY }
+    };
+    drawWarpedImage(cctx, img, local);
+  };
+  img.src = layer.src;
+
+  wrap.onmousedown = (e) => {
+    knSelectLayer(layer.id);
+    const startX = e.clientX, startY = e.clientY;
+    const orig = JSON.parse(JSON.stringify(layer.corners));
+    function onMove(e2) {
+      const dx = e2.clientX - startX, dy = e2.clientY - startY;
+      layer.corners = {
+        tl: { x: orig.tl.x + dx, y: orig.tl.y + dy },
+        tr: { x: orig.tr.x + dx, y: orig.tr.y + dy },
+        br: { x: orig.br.x + dx, y: orig.br.y + dy },
+        bl: { x: orig.bl.x + dx, y: orig.bl.y + dy }
+      };
+      knRenderLayers();
+    }
+    function onUp() { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); }
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  };
+
+  container.appendChild(wrap);
+
+  if (layer.id === knSelectedLayerId) {
+    ['tl', 'tr', 'br', 'bl'].forEach(key => {
+      const dot = document.createElement('div');
+      dot.style.position = 'absolute';
+      dot.style.left = (layer.corners[key].x - 7) + 'px';
+      dot.style.top = (layer.corners[key].y - 7) + 'px';
+      dot.style.width = '14px';
+      dot.style.height = '14px';
+      dot.style.borderRadius = '50%';
+      dot.style.background = '#378ADD';
+      dot.style.border = '2px solid white';
+      dot.style.cursor = 'pointer';
+      dot.style.zIndex = '50';
+      dot.onmousedown = (e) => knStartCornerDrag(e, layer.id, key);
+      container.appendChild(dot);
+    });
+  }
+}
+
+function knStartCornerDrag(e, layerId, cornerKey) {
+  e.preventDefault();
+  e.stopPropagation();
+  const layer = knLayers[knCurrentView].find(l => l.id === layerId);
+  if (!layer) return;
+  const stage = document.getElementById('kn-shirt-stage');
+  const rect = stage.getBoundingClientRect();
+  function onMove(e2) {
+    layer.corners[cornerKey] = { x: e2.clientX - rect.left, y: e2.clientY - rect.top };
+    knRenderLayers();
+  }
+  function onUp() { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); }
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup', onUp);
+}
+
+function knRenderLayerList() {
+  const list = document.getElementById('kn-layer-list');
+  const viewLayers = knLayers[knCurrentView];
+  if (viewLayers.length === 0) {
+    list.innerHTML = '<div style="font-size:11px; color:#bbb; text-align:center; padding:1rem 0;">Henüz tasarım yok</div>';
+    return;
+  }
+  list.innerHTML = viewLayers.map(l => {
+    const activeClass = l.id === knSelectedLayerId ? ' active' : '';
+    return '<div class="kn-layer-item' + activeClass + '" onclick="knSelectLayer(\'' + l.id + '\')">' +
+      '<img class="kn-thumb" src="' + l.src + '" alt="" />' +
+      '<span class="kn-name">' + l.name + '</span>' +
+      '<span class="kn-del" onclick="event.stopPropagation(); knRemoveLayer(\'' + l.id + '\')">✕</span>' +
+      '</div>';
+  }).join('');
+}
+
+function knSelectLayer(id) {
+  knSelectedLayerId = id;
+  knRenderLayers();
+  const controls = document.getElementById('kn-controls');
+  if (id) {
+    const layer = knLayers[knCurrentView].find(l => l.id === id);
+    controls.style.display = 'block';
+    document.getElementById('kn-size-slider').value = (layer.w / 160) * 100;
+    document.getElementById('kn-size-val').textContent = Math.round((layer.w / 160) * 100) + '%';
+    document.getElementById('kn-rot-slider').value = layer.rotation;
+    document.getElementById('kn-rot-val').textContent = Math.round(layer.rotation) + '°';
+    document.getElementById('kn-op-slider').value = layer.opacity;
+    document.getElementById('kn-op-val').textContent = Math.round(layer.opacity) + '%';
+    document.getElementById('kn-rect-controls').style.display = layer.corners ? 'none' : 'block';
+    document.getElementById('kn-perspective-btn').textContent = layer.corners ? '📐 Köşeleri sıfırla' : '📐 Köşeleri çek (perspektif)';
+    document.getElementById('kn-blend-btn').textContent = layer.blend === 'multiply' ? '🌗 Normal görünüme dön' : '🌗 Kumaşa harmanla';
+  } else {
+    controls.style.display = 'none';
+  }
+}
+
+function knRemoveLayer(id) {
+  knLayers[knCurrentView] = knLayers[knCurrentView].filter(l => l.id !== id);
+  if (knSelectedLayerId === id) knSelectedLayerId = null;
+  knRenderLayers();
+}
+
+function knDeleteSelected() {
+  if (knSelectedLayerId) knRemoveLayer(knSelectedLayerId);
+}
+
+function knTogglePerspective() {
+  if (!knSelectedLayerId) return;
+  const layer = knLayers[knCurrentView].find(l => l.id === knSelectedLayerId);
+  if (!layer) return;
+  if (layer.corners) {
+    layer.corners = null;
+  } else {
+    layer.corners = knRectToCorners(layer);
+  }
+  knRenderLayers();
+  knSelectLayer(layer.id);
+}
+
+function knToggleBlend() {
+  if (!knSelectedLayerId) return;
+  const layer = knLayers[knCurrentView].find(l => l.id === knSelectedLayerId);
+  if (!layer) return;
+  layer.blend = layer.blend === 'multiply' ? 'normal' : 'multiply';
+  knRenderLayers();
+  knSelectLayer(layer.id);
+}
+
+function knCenterSelected() {
+  if (!knSelectedLayerId) return;
+  const layer = knLayers[knCurrentView].find(l => l.id === knSelectedLayerId);
+  if (layer.corners) {
+    const xs = [layer.corners.tl.x, layer.corners.tr.x, layer.corners.br.x, layer.corners.bl.x];
+    const ys = [layer.corners.tl.y, layer.corners.tr.y, layer.corners.br.y, layer.corners.bl.y];
+    const bw = Math.max(...xs) - Math.min(...xs), bh = Math.max(...ys) - Math.min(...ys);
+    const dx = (420 - bw) / 2 - Math.min(...xs);
+    const dy = (520 - bh) / 2 - Math.min(...ys);
+    ['tl','tr','br','bl'].forEach(k => { layer.corners[k].x += dx; layer.corners[k].y += dy; });
+  } else {
+    layer.x = (420 - layer.w) / 2;
+    layer.y = (520 - layer.h) / 2;
+  }
+  knRenderLayers();
+}
+
+function knApplyToAllViews() {
+  if (!knSelectedLayerId) { alert('Önce bir tasarım seç.'); return; }
+  const sourceLayer = knLayers[knCurrentView].find(l => l.id === knSelectedLayerId);
+  if (!sourceLayer) return;
+  let count = 0;
+  KN_VIEW_KEYS.forEach(viewKey => {
+    if (viewKey === knCurrentView) return;
+    if (!knMockups[viewKey]) return;
+    const id = 'kn_layer_' + (++knLayerCounter);
+    knLayers[viewKey].push({
+      id,
+      src: sourceLayer.src,
+      name: sourceLayer.name,
+      x: sourceLayer.x,
+      y: sourceLayer.y,
+      w: sourceLayer.w,
+      h: sourceLayer.h,
+      rotation: sourceLayer.rotation,
+      opacity: sourceLayer.opacity,
+      corners: sourceLayer.corners ? JSON.parse(JSON.stringify(sourceLayer.corners)) : null,
+      blend: sourceLayer.blend || 'normal'
+    });
+    count++;
+  });
+  if (count === 0) {
+    alert('Uygulanacak görünüm bulunamadı — önce diğer görünümlere mockup fotoğrafı yükle.');
+  } else {
+    alert(count + ' görünüme uygulandı. Her görünümü kontrol edip gerekirse küçük ayarlar yapabilirsin.');
+    knRenderLayers();
+  }
+}
+
+function knUpdateSize(val) {
+  if (!knSelectedLayerId) return;
+  const layer = knLayers[knCurrentView].find(l => l.id === knSelectedLayerId);
+  const ratio = layer.h / layer.w;
+  layer.w = (val / 100) * 160;
+  layer.h = layer.w * ratio;
+  document.getElementById('kn-size-val').textContent = val + '%';
+  knRenderLayers();
+}
+
+function knUpdateRotation(val) {
+  if (!knSelectedLayerId) return;
+  const layer = knLayers[knCurrentView].find(l => l.id === knSelectedLayerId);
+  layer.rotation = parseFloat(val);
+  document.getElementById('kn-rot-val').textContent = Math.round(val) + '°';
+  knRenderLayers();
+}
+
+function knUpdateOpacity(val) {
+  if (!knSelectedLayerId) return;
+  const layer = knLayers[knCurrentView].find(l => l.id === knSelectedLayerId);
+  layer.opacity = parseFloat(val);
+  document.getElementById('kn-op-val').textContent = Math.round(val) + '%';
+  knRenderLayers();
+}
+
+let knDragState = null;
+function knStartDrag(e, id) {
+  e.preventDefault();
+  const layer = knLayers[knCurrentView].find(l => l.id === id);
+  knDragState = { id, startX: e.clientX, startY: e.clientY, origX: layer.x, origY: layer.y };
+  document.onmousemove = knOnDrag;
+  document.onmouseup = knStopDrag;
+}
+function knOnDrag(e) {
+  if (!knDragState) return;
+  const layer = knLayers[knCurrentView].find(l => l.id === knDragState.id);
+  const dx = e.clientX - knDragState.startX;
+  const dy = e.clientY - knDragState.startY;
+  layer.x = knDragState.origX + dx;
+  layer.y = knDragState.origY + dy;
+  knRenderLayers();
+}
+function knStopDrag() {
+  knDragState = null;
+  document.onmousemove = null;
+  document.onmouseup = null;
+}
+
+let knResizeState = null;
+function knStartResize(e, id) {
+  e.preventDefault();
+  e.stopPropagation();
+  const layer = knLayers[knCurrentView].find(l => l.id === id);
+  knResizeState = { id, startX: e.clientX, startY: e.clientY, origW: layer.w, origH: layer.h };
+  document.onmousemove = knOnResize;
+  document.onmouseup = knStopResize;
+}
+function knOnResize(e) {
+  if (!knResizeState) return;
+  const layer = knLayers[knCurrentView].find(l => l.id === knResizeState.id);
+  const dx = e.clientX - knResizeState.startX;
+  const ratio = knResizeState.origH / knResizeState.origW;
+  layer.w = Math.max(20, knResizeState.origW + dx);
+  layer.h = layer.w * ratio;
+  knRenderLayers();
+  if (layer.id === knSelectedLayerId) {
+    document.getElementById('kn-size-slider').value = (layer.w / 160) * 100;
+    document.getElementById('kn-size-val').textContent = Math.round((layer.w / 160) * 100) + '%';
+  }
+}
+function knStopResize() {
+  knResizeState = null;
+  document.onmousemove = null;
+  document.onmouseup = null;
+}
+
+let knRotateState = null;
+function knStartRotate(e, id) {
+  e.preventDefault();
+  e.stopPropagation();
+  const layer = knLayers[knCurrentView].find(l => l.id === id);
+  const centerX = layer.x + layer.w / 2;
+  const centerY = layer.y + layer.h / 2;
+  knRotateState = { id, centerX, centerY, origRotation: layer.rotation };
+  document.onmousemove = knOnRotate;
+  document.onmouseup = knStopRotate;
+}
+function knOnRotate(e) {
+  if (!knRotateState) return;
+  const stage = document.getElementById('kn-shirt-stage').getBoundingClientRect();
+  const layer = knLayers[knCurrentView].find(l => l.id === knRotateState.id);
+  const mouseX = e.clientX - stage.left;
+  const mouseY = e.clientY - stage.top;
+  const angle = Math.atan2(mouseY - knRotateState.centerY, mouseX - knRotateState.centerX) * 180 / Math.PI;
+  layer.rotation = angle + 90;
+  knRenderLayers();
+  if (layer.id === knSelectedLayerId) {
+    document.getElementById('kn-rot-slider').value = layer.rotation;
+    document.getElementById('kn-rot-val').textContent = Math.round(layer.rotation) + '°';
+  }
+}
+function knStopRotate() {
+  knRotateState = null;
+  document.onmousemove = null;
+  document.onmouseup = null;
+}
+
+let knExportScale = 2;
+
+function knDrawBackgroundContain(ctx, img, canvasW, canvasH) {
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, canvasW, canvasH);
+  const iw = img.naturalWidth, ih = img.naturalHeight;
+  const scale = Math.min(canvasW / iw, canvasH / ih);
+  const dw = iw * scale, dh = ih * scale;
+  const ox = (canvasW - dw) / 2, oy = (canvasH - dh) / 2;
+  ctx.drawImage(img, ox, oy, dw, dh);
+}
+
+function knDrawLayerToCanvas(ctx, img, layer, scale) {
+  ctx.save();
+  ctx.globalAlpha = layer.opacity / 100;
+  if (layer.blend === 'multiply') ctx.globalCompositeOperation = 'multiply';
+  if (layer.corners) {
+    const sc = (k) => ({ x: layer.corners[k].x * scale, y: layer.corners[k].y * scale });
+    drawWarpedImage(ctx, img, { tl: sc('tl'), tr: sc('tr'), br: sc('br'), bl: sc('bl') });
+  } else {
+    const cx = (layer.x + layer.w / 2) * scale;
+    const cy = (layer.y + layer.h / 2) * scale;
+    ctx.translate(cx, cy);
+    ctx.rotate(layer.rotation * Math.PI / 180);
+    ctx.drawImage(img, -(layer.w * scale) / 2, -(layer.h * scale) / 2, layer.w * scale, layer.h * scale);
+  }
+  ctx.restore();
+}
+
+function knExportSnapshot() {
+  if (!knMockups[knCurrentView]) {
+    alert('Önce bu görünüm için bir mockup fotoğrafı yükle.');
+    return;
+  }
+
+  const canvas = document.createElement('canvas');
+  const scale = knExportScale;
+  canvas.width = 420 * scale;
+  canvas.height = 520 * scale;
+  const ctx = canvas.getContext('2d');
+
+  const bgImg = new Image();
+  bgImg.onload = () => {
+    knDrawBackgroundContain(ctx, bgImg, canvas.width, canvas.height);
+
+    const viewLayers = knLayers[knCurrentView];
+    let loaded = 0;
+    if (viewLayers.length === 0) {
+      applyMorphenFilter(ctx, canvas);
+      knFinishExport(canvas);
+      return;
+    }
+    viewLayers.forEach(layer => {
+      const img = new Image();
+      img.onload = () => {
+        knDrawLayerToCanvas(ctx, img, layer, scale);
+        loaded++;
+        if (loaded === viewLayers.length) { applyMorphenFilter(ctx, canvas); knFinishExport(canvas); }
+      };
+      img.src = layer.src;
+    });
+  };
+  bgImg.src = knMockups[knCurrentView];
+}
+
+const knLogoDataUri = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUYAAAH0CAYAAABB1YSOAACjkklEQVR4nOzdZ3hUVdcG4GefOi0JCb33FjqhSgmhinQwoWPDANIEUQSRIYCoiCAiSlS6CiYiIohiC6ggahBRqYqNjvSaTHu+H5mDef0sCAkp7Pu6EMycOXOmrey6FiBJkiRJkiRJkiRJkiRJkiRJkiRJkiRJkiRJkiRJkiRJkiTlCiKnL0CScrOUlBQNaAVgIwCgVatWFEL4c/KaJEmSbiiSIjY2VgWgBP/8FQWAQvLvbpckScoXrIAIAFBVFUIIkIzd/8Mvg9evXX/3nl17BpPspCh/xEO32y2DYz4ku9LSTc/tdmsJCQk+ACBpe+WVFT1+//3oQ6+9+ipCQgvU9fm8uHThAuwOB/wMoFTpUt/EtGq1YdjQYS8KIX5CxveIOfssJEmSskCwK6wG/x0yYsSIe29p3jy1YoWKREagIwAfAE+mPwFFUVi0WFHG9elzYvXq1S2s7jdJ2dCQJCnvytwFXrx42fDo6FY7IyIiqKoqFSG8NpvNa7fbPaZp+pARHH0AfJqqeh1Oh9dms/kAsFV0DL/6ctvrmqZBjjlKkpRnud1uDQDSz6fXiI2Ne6Z27ToUQlBRhN/pdPo0VfUCoKIoLFy4MFu2bMmuXbuyQ4cOrB4ZScMwqOuaPyTE5Qfg79q5C3/98ccoAMg8TilJkpTrCSGAYNd51ar1DXvH9TsbVqAAAXgcDoffME0/ABYrXozVqlc/Om3a9B2rV69ekZqa2oJkzPHjx1t88MEHg6ZPn7G7UKHCVFWVTqfTGxYa6p8+bfpqkg4r6EqSJOV6wfE/oWkaHnG7b6lXP+oEAKqa5nE4HATgM00b27Vvf/ap2U9NJ1lO0/46xpEUkya53y9cuAjtdpsPQKB/3/4kWRqQM9WSJOURiYmJOknbO++8t6pWnToEQMMw/E6nKwAgEBlZgw8++OAWkkUy3U0BoCQlJanWH7fbbQAAyRa33nrreQA+TdN8DepHBbZ/tW0IILvTkiTlASNHzjUBYO3atTMbNWpEAD5d1wM2my0AgDWq10x/+623XydpB4Do6Gjtn1p9QggoioLx48f/pqoqbXabp1LFSvzwvQ+2An+MYUqSJOVK8fHxOgAMGTKkUYmSJY8D8Oi67rfZbX4A/ujoVv6VK9/oYh1/tUtuSCqJL714yDRN2u12T/Fixbl86fL1gAyM+YEcC5HyLbfbrbz44ove5ctXNUz9+pt3Dx86VNjQdU3XdaRdThOdO3XGnDnPdunT5/a1c+fONUkKIcRVLdR2uVwB+gMEAJLQdR2hYaEFsvUJSTeMDIxSvmStKSRZ98OP3vng69SvIkzTDGi6jkuXLikxrWJ8D417qFv9+rXXx8fH66NHj06/2qAIABcuXBC/n/wdgUAAgUBAFChQABHhER8DQI0aNeQuGEmSciUVAO65N/7NsNBQqqrqcTqcAQCeqlWrnX355Ze7An90tf8rwzDQt1/fA8hY7+iLbhnNvdv3lgTkrLQkSblQcAbaeGnh0idKlSpNRVF8wSU56bVr1eFbb65dBgBz52ZMylwLks6mTZscDrYyfbGxcSQZGbxNBkZJknKPpKQkFQB2//Bzq25duxOAx+VyUVVVX7FixfncvPmfkywYHx+vX8ve5tTUVB0Avvnm20dbtGxJBPdPPzZ9OklWBWRglCQpFwl2YQXJ0nfede93ALyGYfgNw/SbpukfMXzEpyRtwNXPPv9ZYmKiDgDuhISJ5StUoKIoFwsVKsRHJ01aRFKXM9L5g/zNJuUbR44cUVVV5bwFC+7fuPHDmkIR1DRN8XjSfXfddZcy77l5k4UQaSS1/zLRktlrr71GktovP/1U/Mzp09ANXTidTlSqWPmkEMJbokQJmWEnH5CBUcoXSIrixYv7fT5f0aQVrw3/5eefA06HU09LS/NXq1bdaNOm3YNCiBS3260JIXzX+hibNm3yAShWtGixEWfOnAYDAa1k8ZKoW7tuOABERUVl6fOScoZs9kv5wpAhQ7QXX3zR+8vBgxO+Tt1maJru93kzcs8OGnTH/ttv77k4uFUvcL2P9dtvv1388ssv/YqiqSSUsAJhnrLlyn4EAD/99NN1n1+SJOm6WctjPv/qq9uqVK16BoDfbrcHAPjbt+vAtLNplTOOu75JEetxtm7d2qJ69Ui/pmkB3TDYtWvX04ZpWIfJrrQkSbmCStI+/uEJ39tsNtpsNp+u6d5yZcvz1eWvrSSpWLPJ18OaePk4ZdPbVatWo6qqHkBw0MBBZ0iGBA+TgTEfkGOMUp7mdrs1koHNn2zt+v57G6qnpaV5NFVTvD4vunTufKLfgL5PCCECWdHF3bZtGwDg621fXTx1+hQUJaPUS0hoKADIkqr5iAyMUp42ZcoUv91u56q3kt3f7Niu2O12/cLFC/4akTW0FtHRo4UQ37jdbi0uLi7LAte+H/cply5dggg2DsMjIq7cRsrdgJIk5aCUlBQNAL7+ekff+vWj/AC8DofTp+u6b8zosTtJhgZ3wWRJ9zYqKkoHgPa3tn/d6XTSZrN5AMFZs54+Q9IBXPv6SCl3kS1GKU8iKTZu3BggGb569apJu3fvUuw2u3Lp8iVRt259td+AAU8KIc6Fh4cHrnXN4t85deoUhBBX8jLabLasPL2UC8jAKOVZCQkJ3Ldvn+PdDe9FXr58GUIRsJmmaBXTaleDBvVWJSUlqbGxsVm+fMbvzxxnCcqS0vmODIxSntSgQQMNAGfMfOLB77/7NmAzTd+lS5cC1atHitt79XxKCHGxcOHCV51f8b9QREY4FEIgEAjg9OkzWf0QUg6TgVHKc9xut7Jt2zb/qVOHy/6y/+cBnnQPVF0TmqZpLVu23N+oUaOlJEVMTMw17XD5N5qqQSCjGw0Avx8/BgS/S8FKhFIeJwOjlOfs2rVLkOSaNR+M27VzZ0FFUZh2OS1QtWo1/20dOk2bMmWK2LhxY7YVpIoIDw/+i1CEguPHj9PhcFzIrseTJEm6GoqiKLitc5e9qqoGXC6nRyhKoH+fgftImsimX/hWUttxD417LSIigjbT9CiK4u94a8dLly5digb+SHsm5W2yxSjlKcG0XoHXkpI6/Lhvb0mS/rS0dFG8eHFRu0ZNtxAiPTY2Nlv6s1aCiLbt2oUWLFQIHo9XEPQdPnzY/sXWL/oBQIUKFeR3Kh+Qb6KUZwTXCAZIGvt27Zl88MBBp8NuF36/X0S3iE57aNJDuwGI2NjYbHn8w4cP+wGgSMHiz9tMgwEGVE1Vld8O/IoN728ASW3t2rVyilqSpBtKABllBaJbtUoDQLvd7okIj/DPn7cgmaRyrTVcroa1eJtkWNdu3bwAGBLiIoDAXXfdHSBZjaSQGbwlSfof2bnzwwp6S5Ysm1SmTGmvaRpeAIE2rdvw/PnzNbP78YGM3S8k9dtvv31ugQIFaLfbPZqm+qpWrcaNGzetAGRd6fxA/maTsgRJEUwCy+joaC07gsPevXtJ0r78tVdqnDx1SlNV1RceHi5Klii51OVy7Y6Ojr7mzNxXq3PnzhRCeOPi4r4rUbJkIO1ymtB1Q9m7d6//o49TOpOsvWvXLpKUkzCSdDPLXC6UZJj172Bi2Cx7DJLi4MmTpdu0bUsAAV3XPTVr1PB//vnnY4E/0oLdCKZpotftsfsA0Gaz+VVV9VWuXIUffPDhq8Af+7glSboJWUGRZKHElxY+OmfOs2cH3z140vvvv983eEiWdG1jg3WiH3r44btCw8ICuq57AQR69br9mFXg6kYJpjoTzz777IDKlSsHFEVJd7lcAQC+Hj16Xr5w4UIdQAZHSbopBcfzxLe//hrer9+A1AoVKxIACxcuzLZt2vK5556fqCjKdZcTJSliY2NVkoUH3HnHHtM0A4ZppBUpUoTDh48cKYRAdHT0DQtCweetknSOGjlyt6qq1DTdZxhGQFWVwPjx48+RrAvI4ChJN5Xg7KsgaT7zzNxtDoeTANJsNpNCUTwAfM2aNQuQLBm8yzUHRyu4HD11qluHjh0JwKNpmrdRo8YX9//6a1sA4kZPeFjB/ueff+7RuUsnPwCv3WEPaLrudzocfOKJJ06RjAJubBdfkqScdWXpTFzvvpcA+ENCQgIAqCoqFUXxlChRwvfyS4vmAEB8/LUHh+joaI2k6NOnT9fChQsHFEVJs9vtvGPg3duEEFk6lvlfWMF4+fLlXevXjyIAr9PppKaqPqfTycefeOKEFRxly1GSbg5WYHT07BV7HgJ+l9MVEABVRaEQwlOiZAn/7Flz5gPXFxgBCCEExo574BshBBVF9YSGhPqXL1s+C8jaSZ7/KiUlRbPZbFi//t2tkdUjCcDjdDqp6rpPN00+MmnSaZK1rWNz6jolSboBMnWlbXOfffYH0zSpqqrXYbfT4XD4AXhr16rNzz//Olihz31NXelMj1OySdMmR2w2ewCAt2uXbkw7y6rBY3Js2Vnm8ca1a9duqVypMgF47A4nVVX16brO0ffff45kPUAGR0nK94LBTvzwww+l4+Ji94WHFyAAf0hIKJs0acrp06bPUlX1ugKX2+02AOCNN98cXa9ePeq6ftnldAX6xPZNIVkoOCmTo7m+rOdHMjQpKWlzpYxJKK/NZqMQwqfrOu8bPvzkmTNnGgAyOEpSvme1BC9dulS2c+fbvp8wYYJ34eLFu9ate3dU8JBrDoqZWmOOsWPHvu10OGm329NKlyodeGXZa/OB3DOxYWXVIRm6bOniL8qVK0shhCfYkvZpmsaxDzxwwmo5yiw8kpSPkVSSkmLV8+nna0xNmHLyx30/PWfVWL7esb/Me5MHDhxEANR0jc2bNfddvny5otXNzoKnkSUytRztL7/84tZixYpREYrHbrdTURSfpmmcMWPGGZL13W63IoOjJOVT1pd78+bNHe4dPNi7ftX6UsGfG1lweoWkWLNmTY2SpUpd1g0jIITgqJGjfiFpB5CrAiPwP8ExZPZTT28uWrQoNU31m6ZJAOlFihTl44/PXAvk7KSRJEnZyPpy33333U27d+t+Dsi6RA7W+OLsufNeLlGyJDVNu1imdGmOHDpyOPBHUoncJlNwDLt/9P2fmobptdlMn2EYBOCtWLEiX3/99Rkk9dz6HCRJug6xsbGqEAKTJ09K6Nal27msmiH+n90ugwZtsTscAU3T0lo2b8GDv/32IACkpqbm2qCSacyxyKhRowggYDNttNsdBOC5/fZY7t69uwMgJ2MkKT9SNE3HokULD/Xp2/eMw+HIkpNmCiy39B84gAA8Docz0LNbj4MkCyIXdqP/LCUlRSOp/vrrz/d3aN+OALx2u4N2u80vhOIbPDj+W2tnUG5/LjcbmXZMum5CACdOnDxTvFgxaFrWNH6Sk5MBAL363fX7559vDQCAx5MuGjRqeEBV1ZMZj5u9KcauV0xMjE8IgbJlyz8TG9d7atVq1bS0tMs+IRRFU5XAZ599Umvx4qXjSSovvviibDXmIjIwSteNJH498JsaFhqWZeVDk5OTQVK0aFSn//FjxxQAgRLFS/LQ4ROT/X6/iI6OzhMTFyQZHx+v33PPPS/1juv9g6brIsBAQNcNfc+ePYF169YNA1B8yJAhPtlqzD1kYJSyxPnz56DpBrIoyxiAjBbhwcOHexjBVmiDhg3Ec889rQshOGXKlCx7nOwkhAi0bds2IIQ42K1br77RLVqqaZfTEGAAmq4Fvvhiq/bcs89NBMAhQ4bIVmMuIQOjlCV8ngACfj+A6+/dBltOJBmx+dPPAj6fLxDiCtV10/wCwJbY2Fi1VatW/ut+oBukd+/e/qSkJKN+/Vrfd+x027sFCxUUPp/PZ+iGeuTI4cBnWzb3I1nuxRdf9F3r1kkpa8k3QcoSAfrhSU/PqtOpAAIHDx7sHBYaUvfc+fMeh9OmtI6O/kkIceb48eMit48vZkYSAPxCiPRhI4ZOb9asufD5fCIQ8ItAIMDPP/+8QPLryRMAMCEhQXancwEZGKUsIQRw8dJlKwhcl1atWgEAJj76aPquPXsIQLXbXYGffzk8haTYtGlT4Lof5AaLi4vzJyUlqaGO0C3Nbmn+foGwAqrH4/UbhoEjRw7zgw8/ig6Oz+aZgJ+fycAoZQndMHH69GkEAtf/vd60aZOfpFq3Vq3JBw8eFACUZs2aKY8/PsUvhKDb7b7+C84BO3fuFD6fT2natPGMylWrnEFGvRjF5/P5f/3t1zL79u2PQ0bd7DwxsZSfycAoXTchBEqVLIFjx48hEMiSoT8C4M7du4sxEIDdbldOnTqVBOBIdHS0NmXKlDzZqkpISPABQMuWLTfVrVP7lKIqms/nI8nATz/tty9dukgBgClTpsjudA6TgTEfSkpKuqGpuEgiJDQkcPToUfj9WTYnom/bts2rCMHChQuLFs1aHBJCXGrVqpWSl8YX/8wNN0gqdevWWV6oYCFevnyZuq6rR48ehcPuiCOpJSQkBJCV0/vSfyYDY/4i3G63FhcX5xdC8EbmKiwQFuY4efJ3pKWlXddnykojtuXLrQ+RgcKKovo03Uxv16H9V0II1KhRI8/MRv+VGqwhhBCBtre2X9+wUQNBkrquqxcunMfRw0dvA6ADyHNjqJKUK2UOgCSjgtlnbgRFCIFXV7z6bpmyZc5c78mspAoTHpkwvVSZ0jR0nQ0bND2a6ZA83ZIK7iUXJKMefGjcCTWjPoxfAGzTus1xktZaxjz9PPM62WLMB0gKIQRJOl944YUlj0x6NHXC+PGbl72y+E6SEcEMONnyRYuNjRUksXb9e4/WqVPXuW3btp7Ba7qmCYS9e/eSpPrVF1+FnD17Fh6vF7fe2q7ADQz02UoIEXC73aoQYpvX43s/JDRE9fn9fiEEzl84rwMIz+lrlKQ8j6QIjikW6jdg4OdlypShEMLrdDpZu04dPvfc8ysVRcm2FF1Wsof177/f5O7Bg/nSwsWPAdeWWdta3EyyzMgRIwMAfA67g253wmvBQKsgH7SkgsklxHsfbHivSrWq1DTNC8DTpk1b/vjj/qeA3J056GYgW4x53JQpU9S4uDj/c/NfeD7l44+aHDp4MD3E5dSEEP5vd+zwLVz4ctfXXlvdpG3btoHsyBgdGxsLAOjYrp0WFhKC1atWXRJCYNu2bdd8zl+PHlX3/rBXAPBXrFQRhQpFvC2E8MfHx6vIB+v8fv/9dwohWKZ06S1hoaHw+wMCAM6dO4+jR4/l+cAvSTkqU87CQnfeeec3drvd57Tb/YoAIQQVRXjLli3Ldp061QzeRc3q4EhSBOs+h7Zp02ZH4cKFpwFAVFTUtbR4FAAoVapURMUKFSiE8LZo3vzS6dOneyJjXC5frO+zWsbvvZcU0bRpE2aUhFU81atHcsXrq2YBuaeWzc1KthjzsClTpojk5GQCCNEMzQwEAoCigABURUBVNPXIkcOexnXrTT19+nRrm83mj4uL8wPIsnojQghWrVpVCCHOqarY37Vr1x4kQ7Zt2+b/rzPisbGxAgCeeuqpey5eugTD0LVLFy9/Gx4e/iYyJnny9Iz0n3XoEBtasFAhkISqqvB6vUi/fD6nL0uCDIx5WkJCQiA+Pl4VQvzcsF7DQ6FhYerFixe9um5QVbWA1+f1N2rU2CharFiPqVMTPpr48MNbV6xY0VnTtEAwQKput1shr2/cLioqCiRFp06ddCGUGgBCcA1LTiIjIwVJcfDI4Q6KokARKrp07hKSj9Nx+W12a06JIIBAQH4lcwP5LuRxiYmJfpJq/ND4h+Pj7z1Zrnw50+/3C0VRlLZt22jx8UOfHzFieOXGjZs8dvzEicD7G95fe9/QYdufe+aZNkIIf0JCQkCI6yvnefjwYQohWLp02W+3f/21XwhxDsB/zs24ceNGCCGY/Eby7xcvXoQrxIVKVatsz8sLuv8NAxm/PwKBAFRFhW7KHrQkZYlMs7mVVqx4dcaTs578cdr0aalr1qzp/OfgNH/+/Oj7hg1LGTRwIIcPG771y81f3uJw2K3zaNfYOhMAUKFChbDmLVoE3nrzLbd1vqs9Qab1fbV79OhxRCjCUyOyhj/+zvhaQP6qqJfp/SrdrXs3ImNCyRMV1ZAffZTyNAAkJspZaUm6bpmLUNntdhjGleqlIqP2c5JqBSpN0/D88y+26Nq167sD+g/kjMcee49ke+sO/7X1mKn+c/E777o7MHrU2HUAxH9ZImRNrFy4cKFD9+7dCeByt67dePz48ZbXck25mRUYL106VbbDrR2uBMa27drz559/fRKQy3UkKcsEg6MVIMVftdiCAUYBAF3XMXfe3Mfat29/YcCAgVy27NURJEOB/9zaswJjsUmPPsqQsPBXgP82M20FvnEPP9y0emRkAIA3tlfsTyQrIqO+dL4Z9rEC4+bNm4vc0qwZAQQURWGTJk1OkYwIHpZfx1UlKfcKBiKrEl/lMQ88sKVtu/YcOnTYVpJ1godddTAKdsP1O+65a37/vv1PBs8hrjagWWVYx0+ceGdYWBg1TWOLFq0WAde89CfXsgLj56mpzaMaRFFVVD8A9urZ6wxJ67nKwJiD8s1vYem/Cc5K+91utyaE+GHe3Lm3DBzQf8LePXvqDRky7Jtvvvl6mBAiEFyj+K+fkxo1aihCCG+/uLgTXr83onfP3n4AjIuLu6oveHJyMjVNQ2S1ao+ePXsWdrsd7du2tZMUUVFR1/t0c5VWrVopAODzpj3s8XggFOHTNB21a9c5i+AvKylnycB4k0tISPC53W7F5/Npd9111xMfp3xc9vffj2977LHHn581c86IzVu2+IL7e//ts+IHgEa3NPnkp59+ulS9dvU4ktY6y6v2ww8/XgIAlysETZtlLH7Ob4Fx48aNICm+/CI1/fjx36Eqir9YsaI8cfL3BCFEWnR0tIZ8sMNHkvIFa+aXZPjkyY+uqF2nDhckJn5NshRwdRMgqqpi0B2DPHfdddeB4I+u9pevQlLpN2jgTlVRWLly5fRXX32jWvC2fNWtDAY+9O/bd2XBggWpqurF5s1a8IMNH8QDQEoKZbVAScpNMi/XGfXAmD63duzIBx988GeSZYB/DY4qSaVbt27TKlWq/GtwIkG5yiVACgBE1q71jQB4W8dOHvJswT9fU15nLUtKT0+v1a9/v+O6rnvtNpu/R48e+0mWQMa4bL55vnmV7EpL/yOYvkyMHDnSfPbpOSvHjhsX9+NPP5Xr1bPXx6dPny4fFxfn/7sZ68TEREUIEejYseOXMa1alXl+XmI7AIGNGzf+Y0szGGx56dKlFk6bvTSBQLmyZb1AaL5rOSUnJwuS+Orzr0r/+stvhb1eb8A0baJhw4ZHhBCHAeSpCoiSdNOx1iGeOH3i9rvuuZvNbmn+w7qPPioL/HXLMdMi7XotWrQ8Mvju+CWZ0oX9LWvN3g/794+9pVkzCiECUVFRCcGWU76akUbwtXjlleVbixQpEgDgiYpqwFWr1rSzkoLk8PVJkvRvUlJSNADw+dJ7Dx48mHXq1tu/fe/eksDfdqtVALg9NnbrvfFDmCkjzt92D61MMq8lvz60SpUqgZDQUN5xx10PA8i2PJI5IRjoFZKlBt977y9Op9OvaZp3yJBhJ0lWx39Y3iRlL/kmSP8oJibG53a7DU0zX1/w0kt9GjasX+Guvv0279z5U9m/6lbHxsbC7XYr3bt3O/3u+vWerVu3Fvq3MTMrd+NX277Uzpw7IyIKhKNTp04qkJGgIr9ITk7WAXDXrl0dDh06VPbixYvppUqW0qpXq/qqEGJ3YmKiJoSQ9V4kKa+wurskY++65262bNnqh9NHTpcH/rflaLV4tmzZUis2Lo5Dho3814ze1gLuypGRd+qmydp16gQOHDgwIfPj5gexsbGqqqp44skn34iIiCAA/20db0snWZyknHSRpLzICm5p3rTb+w/oz7i4uB9Jlgb+CIgkRUYqM5bs17//3hbNW71DMvRfKhaqJLU+/fot0DSN5cpW+JWk8wY9rRvC+uVBslHfPv0IwFOqVMnAY1OnzSGp5KchA0m66VjB8eSZk3369R/IcRlLeSoGtwQqAOB2uw0AmDlr1qLevfvy22/3Fw3+/P8N3WTaZx0ybfp0HwC2adP+Z1XNX3MQwdfHuWTJ8rXFS5T0A/B27tTlPMniQP5akiRJNyUr8H23e1+v2N69OWL0yFcBYOTIkSaQ0XoUQuDoiRPt2rXvwGefedYN/HXqsEyB0RU/bMgpABw+bMQv+SlQZEozVvaewfEEkF6mTFnOmjVnNpC/MgdJ0k3NajnOe/75XjVr1/YNuvPOEcGbrC+5ous6unfv/lmPnr22CyGu7Pj4kyuBsUv3rmcBcM7sOQdCQkKy/0ncINYwwpRpjw0rWbJUQAiRPiR+6O8kK8bGxmZ5HR5JknKQ1XIc/8j4Kd26dePKlUn36bqOpKQkNRg4xQMPPHDfkCFD0y9evNgIf50KzQqMYVGNok4busHesf3uURQlXySnTUlJ0YKB8ZbB8fEEkNamdVvu2LFzHvDf0rtJkpQHZKoQWGSye8o3Xbt1J8kr3WmS4vLl0+XatWt3ftSo+4eSVP6i1Xily1wgosCJUiVLccg9990G4O9amHmNAIDZc+a8GxISEggPD/fOmPHEUpJqYnyi/l/LP0iSlAdkGj8r2K5dhy/79u//GUkl2NpTFEXB/feP+XHQoEFHFUUB/rTQ2+pGfrfruz6uUNflunXqBjZ/srk78Mfi8rwqKSlJJam+++67HRo2apQOgA89+NBlMiNJRH4aR5Uk6U+s4LZ69YrSveN6s1u3bt2FEBg5cqRJUsyePTeuY8fbLqSmptYKrte7MjttrVPcufO7JREFw9mmTRuS7AXk7cAYDHqCpH3YsPu8AHwd2ne4sGvXrs4k5biiJN0MUlJSNJLq00/PGd+rZy/vunXrKgBAbGysQdLWseOtPwwYMCDB+pl1P2sSJ2VTyjPFihdnufLlt5AMQ8baxjzZoiIp4uPjdZJi0qRHF6mqll6/XhRfXfbqXUD+KuwlSdJVUBUFDz/88PFWrWJWkzTvuOMOGwA8/PDDb/Ts2fNbkg5kSkVmBcZXXn312RIlS7Bevfrrg6fKs63F+MSMxdpr1699oUbNGixUqBAXvbxoI8kCiYmJel4N+JIkXQOSitvt1k6cO1e9X7/+l7p06RIf/Ll4880VVeLi4uge447IPNZoBcY5z8x5tniJYrzrrrvftyZ1cu6ZXDtrlvnpefNq1apd+6RpGBwxfMRmayePDIp5g0wiIWWZYAKEQKHQ0N2XLl3seDkt/al33nmn1pQpU0SPHn1Oly5b5tCuw/umBAIBxMfHa8AfCSSOHD+GQICoVrmyL6/mI0xJSdESEhJ859LSqn34/vsffvfttxGdb+v0ybzn5rUWQlwMLnwnkBEgM41DKqmpqXpqaqoeHHsU1h+5h1qS8gEhBNxut0FSH/vAA9u7d+/5vnXbpEmTRg8dOuw0yQrIWNN4ZY9wbL++zxYuXJir3li1Gch7S3WsiSKSNe8bMeJ3VVX5wJgH/CRbAcDPP/9sS0lJ0YLP91oCnRLshsvxSUnKi6wZ11OnzrXs3aevd/Yzz0wEAJLaXXfdyREjRrS2krJamXVatYmZV6JkCS5cuPCu4GnyTADIFBRrzZj5+CGHw8ERI0ZdvHzxcgIA8ecEETabDSRDSRYgGXr48OGWx08cX3DixPEF+/ft67d8+fJQkuHBY0JJhur6/5zCyusoe3zZRDbRpWyRmJioDxkyxJuQkDD5+LHfJ04a+0iZYhWLnZswYcKHqm7YHps2tUFsbKz6008/Kdu2bfM2aNhg3ulTp0ecPny61KnLpw4hY5gn1+cmTElJ0WJiYnwkI595Zu5HU6dPKxYT3XrLqlVJbQDUtdlsW/1+P44fP37Hdzt3hr/1ZrIPitokvEBE97179gZOnTqpnD131ikIkMT5CxeQnpZ2sWChQqJo0aIsXLhwoFLlysqF8+dfbdms2fctWrX6MTQ09F2PxwMgY0xzypQp/rw6/CBJN5Vg+jGNZMhd99z9ZcdOHacDwKxZszoMHDho/6FDp8oEF4IbJEXFyhXnN2jQgPPnz68O/HUmntwm00LtyJlPPf17RMGCjB8ybI3T6QLJWxa+tHDA8y+8sPu2Tp12RreKZqNGDVmpUiWGhYURGeVmA8G/vQAuKUKkmaYZsNvtNAyDwWBHAIwID2etWrXZqHHjwMRHJu585913ppAsa12LnO2WpDzCmqGdNHVqvSHDhgY2b97cAQASpiScmzVrzp0AEB8f7wAAITCzZ/ceTDubViV431wdGJOSkgwgo/v81OxZx2vUqM7Vq1al7t37wxMznnjyrT59+7JK1WpXAhsygqDPNE0WKVqEpUuVZqlSpViyRAkWLlyEERERVFWFAKipKk3TpGEaHqfD6QkNCw2Yps0HwGOdr0rVKuzZs+eRFxcseIpkSeu6ZHDMGvJFlLJVfHy8vnDhIu+kSZM+BlDk8Scerzlt6vSnAj5flYcnPtyzVatWYuPGjQU7d+q03tCNem++tTpSCLEnOIOb67rSwesSAPwkaz325BPvv/DcvGL33Xef//ix477XXl1hnj5zCj6fHyEhThQuVASqrqeXLVuWtzRtqh4/enzd97u+/yK8YEHVZtj8igJcuHBJPX78qL9Ro0Y9NE2rv2PHjsCPP/6oA1TOnj2H8+fPQ9M0vxACJBVFUejz+RgIBNRChQqjVXT0+aFD4p9r065dghAi3e12KwkJCbnutZMkKcgqALV169byo0aPPrlu3Xu3bNu2rdLiRYuZ6ZjaI0aMYO8+vUmyZvBnuarFmLmCn8vlwufbtg+I7d37mN1mp8NhT0NGd5gOh53R0dHs16/vweHDhy/76IMPFrz22mtFz507V4hk4dDQ0H96DJ1kkUOHDhVaunRp9aXLli2PbtVq6S3NmqUVKlSIQigE4DdttoBhGFQUNaCoqg8Ao6Lqc8LEiR+QtCM4438jXhdJkq5RfHAR9+x588Y9MvnRb0naly1f9u2XW7dOAACSNYYNHeYvU6bM6yTtyGVLdTJ3T8+dO1dt5Kj7F7do2ZIAfADoCnGxVasYDr538M5VycnvbNqypRHJEn93vqioKD0qKkqPj4/X4+Pjdev//+74nw7+VDVxYeILbdu1/aJo0SIEQAHh1zWNmqrSMIwAgDS73cFOnTp/EMxwJIOjJOVywu12K4ZhYMnSJelut/uWTR9/3Gnx4sWLgguYq8fHx7NAaIHZwB/FsXKDTEtx1BkznuzcvXvPC4qiEgCrV6/OgQMHXZg0ecr8AwcODyRpZL5vfHy8Hrz/VS3Uto4JTlwpiYmJ/xMwVVVF0htJ7gEDB541DINCgV/TNAKgqqrUdd1jt9t52223fRScGLIWikuSlBsF8zMq7777bouXX375AwDYuXMnj+4/WpRkqTvuvIPNb2n+nBAi1wRGa/KIpHP6YzNSypQpSwCsWKkiu3fr/tmHH378OMmqmvY/DVw1mJg2y1prbrdbiY2NVaOjozVFUUCy1Ow5c76pXLkyhRB+wzAygqOmUVEUT8GIgpw4/pGPSRqZdtJIkpQbWWN0H6d8/Pr6DRv6nL1wduAPB38oTbLMoDsG8Y6Bd8wD//+C6Bst817tH37+uVXrtm0/sNsdDA8PZ4cOHTbNe2ZeDyshb5ASzC50IwKQVW3QMXH8xEFVKlfxAPBomk4A1HWdALxVq1TlrCef7AzIbD6SlKsFE7cqP//8c5PvvvtuoPXzM5cvVxo4cCBHjxjzLPBHyYSckLml9+HHm4b0io1lREQE27Rtc2rJsmUL7Xb7lWNzau1g5sd8+umnR9WuU5tCCK+qqhRCUFM1r6aqvu7de2wlaQ8GRtlqlKTcKvPsrtPpBEnXhfQLde648w4+M3v2AmsvcE60cjJ1ncvMm79gQeUqVVm5cmXec++9c44ePVoreJj6LzWybwgGa1GTLDx37uxU0zR8mqb5NUXQlhEgvQ0aNOCbyW/KVqMk5RVLliyJufuee17v2LHTqVq1a5+MiIjwd+vW9dLixYu3ZZrRvWHBx9rfTbJkQsLUvbVq12bz5s2/e+vNt0ZnqsuSq4KLFexIVux1ey8CCNhMg7qm0TQNv8Nu57PPPLvdyuKTs1crSdL/Y61nJFl4+SvL36lWrZpPBHdxCHFldwiFEGzVKubAli1bp9+oEgCZAkzh+HuHHGnYoBGfmfPsWyQLAhmZfnLr0pekpCSDpL5gwYIVJUuWpKqqHl3XaZqmX1NVdu7cZU/wUBkYJSm3cbvdmlAUTH98+oN16tQhAH+1yOocNuy+Y9OmJ8x+edHLp6fPeOxAg8aNT4SGhTI6Opp7f95bPbvzEVrd5z59upbo2avX8eZNm7//zpo1zf58e25lBexzJ05ERke3OisAv2maAcMw/KqiBurWqfsDSRfk0h1JynWs2tFm7Tp1fwfgK1CgwNmFixdPJhmhaRr8fv9MksVJlhz/8PgnS5Yo4R04cOBiIGM9YHZeV+3aVcrHx9/706yZM1OsyZdgAow8E0jsdjuGxMcfA0C73R4wTJMAPJ07deKRQ4dGAn8UHpMkKRewAtucuXMnlylT1i+E4PBh9x3ONHanvPXWWyGZk9MOHzl8cZ8+fb4jWQjZUBjLKm26Y8eOha8nJR9NfH5hx5CQEABQUtx5rzohSXP+/PnHDcOgzW4LBJfteFpFtwpsT90+HPijjIT07/LcB0DKe7YF/07ZmBIqBBQBgWrVqqmBQMAB4LIQItC9e/fzQEbA2rlzp2jfvv2U1C+/2g2gHIATyJj48GfF9ZBUhRD+4ydPDvb7/WE1a0S2qVGjxk5ktCADMQkxeTEBQ6BCuXJwuly4ePEiyIyt6KZhCkM3nDl8bZIk/ZnVUnn8iSfmV6hQISCEYL++/Q6bpnlljOwvWoTqzOkz6/7NbVmC+OO8uXVy5WqR1N9///3jBQsWpGGaAU3XAwD89evXP3jixIlIBGvL5PR1SpIUZM0s79mzp3u9+vUCAPwRhQqdf2zmzGbAP48hZupuZ9u15YeAQVJf8/aa4wUKhNNmswVM0/QDYExM6/3BQ/LMeKkk3TRICk3TMP7hh79wOJ1UVdXbrn379J0797YAgLlz55p/DoJ5vRV3I5G0Pf/CC8d13aDD4QiYpuk3DMM/dsy4VcHALwOjJOU2JEVUVJT+65kz4e3at/9S1VQCSLutY8fzq1evbhU8TJFV8P47ksI0TdwbH38UAENcIQEA3sYNGnHF8hWtgD9a7ZIk5TJWC/CDDz4o2Lt376+KFS8eTN9V7cyyZcset2qo5LWlMjnJCngHDx5sG9O69SUAPrvD7lNV1Tf4rsE/kyzvdrsV+XpKUi6WaetdgUkTJ75cunQZHwBWrx7JsWPHrqPX2946Nrcvrs5pJEUwq4/+0uJFGwsVLkxbRm0YX+UqVZiU9MaDgHwdJSlPyNx6eeONpN7de3TfYbOZBMDbb4/1L126dCjJCCBjOx4pxxr/ipVrkWTrvv0HEEAgNDQ0oKpqYPKjk0+RDA1OLsnWoiTlBcEsO1alPfXllxKTW0VHXwLAUqVLc9yDD+768aefHrQmZGSr5/+zSkbMenr2ptDQMF+Iy+UF4G3Tuo1/1ze7akKWN5CkvCmYwEHRdR1Hjx5tMnTofUsrVqhAAGzQsAHdbvcCkrWDhyvyi57B+kWxadOnT0RG1vSbpulTFCW9dq06fH/Dh6+oqprrCopJkvTfKUBGXZOPNmyY0rljp/2GYdI0TbZr1+7okiVL4oJb9hDMQ3jTdg8zjdOW6Nmr11lDN/yGYaSVLlWWs5+cu1xVVURFRd3Ur5Ek5RvBFs6VL/3ihQs3RzWIulJ4qm/fPotTv0utaB1/M3avMwfFIcOG7Xc6nX4Al8uVLcfpCY8t03UdyIa95ZIk5TAr4AlFYOtXW7sNGDQwpWKligTARo0aX5g588l5JB1AxuRMjl7sDWRtrSRZevz48T8WCA8nBPzNmzXniy++/KrNZkNuyC4uSVI2ISnwRwJZx+o1q5+JaRVzCQALFy7EmJiYjR9++GEPAIiMjDRugrFHFQAuXbpUOj4+fq/NZqNhGoFaNWsdW7N6bYJpmkCwTGvOXqYkSdku2HoUAOD1ejs98siErSVKZCwMb9GiBSdOnDgi07H5NTgKVVXw448/tmnduvVeACxSpChHjRh1cuvWr+sEj5E7WyTpZhIsQG8AGQW0Pnj/vcUd2rc7C4BOp5MPPfTQapJlgofnqwCRlJSkqqqK9e+//2Tnzl0JgLfd1olPP/X0kySrBI/JsaqKkiTlsODEgwoARw8cqP3kEzN+LV+hLAsXLsx77rl3z2+/HaukKBmT2/lhqYq1lW/WM8/MrFW7NksUL8ER9434dt/u/XdnPiYnr1GSpNzDyuEYtnrNGw+0a9/+W4fTydatW59bsWLFbE3LmI/JxpII2c6agFq6fOkdFSpWYJXKlb3ffftdKskwwNoRlPeDvyRJWShzS4lk+ISJE781TZNly5Zl565dZ50+cqR88GaRRzPLCADitddeKxoXF/ubw+EI3HfffftI1p47d64pW4qSJP0lkiLTEpYi8559dntYWBgdDgdbt2lzOil51TNOx5Ws/nkuw4wV0Dd/+ukDkZHV6XK5OOmRSR8Csn6LJEn/ItOi56IPjX/oO4fTSQD+suXKs2fP2LVfffX1bcGFz1dqSOcFJJVgCrbCU6dM+UVV1fSiRYv5Zs2a5Qby1nORJCkHZAqOBdu2jfkWgK9GzRppISEhrFWrtu+lhS99bGXsiYqK0vNKV9Qaa9yyZctDTZs2JYBAx9s6nty9e3cJyCQRkiT9G2vZyu59u3t16NCBderU8b22cmWgSrVqNG0mO3a8dU9SUtJD1vF5oTsqhLBmp12D7733mKZp3pIlS3LU/fdPV4SSpyeYJEm6Qax1fy8lvjTF5XR57r77ntN79u1bYe2aKV26FMdPGL+EZPXgXXL90p7ExETd7XYrkydPnlC2bFkC8Ddr3vyC1QKGrOciSdJV0AAgLq73+wDSn571zFskK016dNLeEiVK0Ga3sX27dr8mJyffbbPZAOTumiipqak6AOzdu3dqhw4dCOBiyZIlA48+8ugMkkK2GiVJ+ldWZus9e75vXqdObTZp0pQ/7v2xJ8kCCxY8/2DHjh0yElI0bMj7RoxITEtjZKa757rWlzWbTrJIj549j9rtNr+maf4e3XucIlkEco+0JEn/JriFUCOpT58+fYPNZvMnJEzbRVIHgO3bU9v37Nlzs83uoGEYHDCg/8VnnnvuNqsYV26d7TUMA+PHP/SbzWajYRieSpUq88P3P3wayN0tXkmScgkrUJw7dy66YeNGvoYNGvoO/HpgUFRUlLXuscCSJUu21qhRgwB8NWvW5MhRoz4iGSqEQHR0tJbbgg1JkZT8+m8FwgvQMAyPaZiBoffdt5mkuJnSr0mSdB3cbreiaiomuSd/aLfbOXfus3scDseVMTuSxvIly2/v0aOHBwBNw2SHDh2OP/HUU/dkOk2u6Ka63W5NCIFn5s+7q3KVKtR1zQvAe9fdd18i2R4AUlJSZHCUJOmfud1uLTY2Vv1w44cx1SIjz91yyy0nSJYArmQLFwCQlpbW88Fx43aHh4cTAIsUKcL+/fu/f/jw4YaqmtFozOmZ6yt7p195pVudunUphPAKIbyNGzfhihUremY+RpIk6d+oANC7d+8d5cqX55tvvDmXpJKYmKhbY5FARuB78smZydHR0QRAVVXZq1cvLl66eBpJV/BcORYcret8//334xo0aEAAXsMwvKVLl2b79u1jgJsrm7kkSddHBSAWLHj+SV03ApOnTEknWQ74oxVojSU6HA5s2rQpISYm5ndAEMDl0qVLcdyD4w589tlnda3z5UStZqubvHb9+tsaNGhIAF7TtPkKFizIObPmzNY0TaYgkyTp6lgzzCtXraxZs3ZNdux4G0kWBv5fLkOBPwpxNXj66VmnK1WsSABpNpuNt9xyy4UFC15YZnfYr9zhRgbH2NhYVVUVvJa0clKlypWoKIrPZrP57XY7X3nl1RN2u/3fTyJJkgT8saaRZP3YuNhzZcuWC+zYsWNGptv+x/fff28AAMmqL7644KkuXTpT0zUCYMmSJdi7X+8tqdtTY0nagIwu7o0af7Tb7Xht5WsnXS4X7Ta73zRNv91u54LnF+yzFqpLkiRdFWuJTlRU/UWFChXiypWvr888vvhnmVuS33yz7e4unTvtcrlcBHA5NCSEzZs358yZT24NLq4GAKs6X7YGSJL6Qw+P/03VNDqdTr9pmn6bzcZlS5Ydly1GSZL+Eysw9u3Xe0nhIoU5Zsy414B/nsUlqViTGSRLLly8cF/Dhg0JIF3TNK/T4WT7DreeXv7q8mkkraS4SElJ0bK6ix1MdiFOnDgxqkePHn4AHrvdTsMwfOER4VyyZOmKYFo1OcYoSdLVsfYST3xk4nKb3cYJEx89TbIhMrrY/xhMMq15LPjp5k+Hjxw1igULFqQixGVd11ipUiUOHzH82MaNH8+2ilMBV7rYWRIgExMTdSGABPfUlwsXLkJFEV5d1ymE8FarFskHxz7YxnrMrHg8SZJuAlZgfHbes68YhsE77ryHJNsBAMl/3d2SOcCRbPf4449/0LJlS6qKQptpSxcAq1SuzBEjRpx97/33niNZPNPd1etZeL148WIbAOzbs29M2zbtCcBn6BqNjHFPb5fO3dJ//vnnjoAMjJIk/QdWYFy48KVXbDYbO3S4NUAyBri6wBg8LvOaR9u2bdum3nnHHeciMhaFp9tsNi8Alq9QnnfefUfaqytenfGnACliY2PVYG7Ff+vyWgloNQC4cOFC8R49ev2oqqpPVVW/IhSqivAZpukfMmToh3JLoCRJ/5kVGBckLnjFNE22a9uOJFsDVx8YLZmPJ1n0qaeeeqlr14x6z4oiPLquewGwbPly7Nmzx8nx4yfM+PHHH3u6XK4/n0qJj4/X4+Pj9cTERD0xMVG3/h/BHTmaquLbb3d1atum/Xc200YhhB8ATdMgAH/NmjW5ePErzQBZRlWSpP/ICoxjHnrgFSEE27drT6/Xe02BMXgfYY09Op1O/Pbbb7eOHTf2WGRGQgraHQ6PpmoeAIyIiOBtt93GQXcN+vLNt1atfP7552uSrGma5t+eP8QVgm+++abmpMmT3bffHkcABOBXVZWqotDQdU+BsAJ86IGHNpA0ZBc668kXVMr3tm3bBgDYu3O3IAlFvb7GlRCCALwkhRBCKVOmzHsko+P6xN27eOHSIevfecd54LffYLfZfemedK5fv15omtbw/Xffb1ioUKHe33/3HW7rdFtySGjYyepVq4qQsDAGAsD582eV3375JXDk0JFy999//63btm3D+fPn/aqqikDArwAB2OyOwMWLF/U7Y+PSn5z15FQhhCe3ZQGSJCkPsJbr1KtXbykAduna9T+PMf6TzC02kqXfePPN+Xfedae/YsWKVBSFQgiv3Wb3mKbpC3aH/Xa7nWFhYSxWvBhLlynDMmXLskSJkoyIKEjTNAnAD6uVqKo0bSZNm+kDEOjWtfuFT1M+bQXIPIySJF2DTDtf6vXr1/8MgPRxDzxIkh2ArAmMwfMomcf5SFZ59913Fz0wbtz5Zs2a0QgGO0UIj8sVEggJCfHaTJtHVVQvAE/wj1dTVY/dbvc5nU4apknD0CmEEgDgCQ0J5ZDBQy9u3ZraGpBpxiRJukbWXuknnn66VtNmzahpmn/kyFFbSRYK7lbJ0sXYJEXm6oMka3711Vfdpk+bnhrXpzcrV6lijRkGW5OKV9N1r2EaXl3XvZqmeTVN9aqq6gXgBUC73c6YmNZcuHDRLySjgbxR4TAvk79xpHwtOTkZJMWiJYv67Nm1i3abTQkNDftVCHEiOjpaC44XZhlr/NHtdis1atQQQojvAXxvs9nWnD17ts9HH6VU2b1317jUL7+y//bbb8qFixe1348fh9frBcmM+WgSDocDJUuVRrlyZf0xMTG/tmje4pmoqKh599xzN9xutzJkyBBvVl639L9kYJTyPSEE7x0a3/3MmTOiWNFiaN68WQGSYuPGjYiJicmWx0xISAgAGV3s5ORkERcXFzBNc2XwZ88DEAcPHixw4NCByT/v/xknTpxAWloaFEWBzWZDqVKlUKVqVW9k9eoJAE4KIS5Y5xNCBLLloiVJyv+C44fit8OHb41p3fqsEMJbr249/2effdYCuPFr/1JSUrRrHReU44k3lnyxpXyrVatWgiQedburHjhwIJSkt0GDhkqzZs3258T1xMTE+IA/thhOmTJFlChRQgX+WFJkiYqKAgDEx8f7AEAI4buR1ypJUv4lSBp3DrrziKZpgQIFCvCpJ57aTjIiNvbGZ+GWJEnKUVaqrnXrNoyJjIz0K4pIr12rzqVPN34aC8iuqSRJNxmSIliXJWT4iFEHDcMggMC99ww+53A4IIRsKEqSdJOxdqK89dbbY2rWrElVU9PLli3LV5e9uoSkJneLSP9GZuSQ8hWS4siRI4Jk0cWLF4/Yt2+fDwSaNG5yrt/Afk8Ft+RJkiTdVAQALFy4dFN4eDgVIdLDwyM4b95zS4E/dsJIkiQByJhwyM/dyGC9FfWTzV/1rVGj9mVFER4Anu7delwkWZWkkp+fvyRJ0v+wsmKTtA+77z6/AKjrRnrlylW44rXXl5JU5P5iSZL+hxACH330Udynn3/eCrixxeKzm/VcSGozHn98tcPh8LlCnOmqqvr79un/LcmSAJT89JwlSboOmVpSVSY8PJGrV7+9Fcg/hZNIivj4eJ1kyLr1G1bXqFmLmq76oMDXo0cPHvjlwO2AzEYjSVImwaChLViw4JUqlat4Xnwh8e1/Kjaf17jdbgMAXn/9zTtatGhJAJdtNpunWLFinvnz509WVVUmc5Uk6Q9JSUlWVbqasbGxHiHAQQMHrQOA/FBVzgruL73wUqNq1ar9DsBrs9k84eERfHz6E58Af2TvliRJAvBH8Fu0eGlyyZKlqGmqv03rNqkXLrAYgDy9V3ju3LkmAKxcubJJw4YNLyuKoMvl8mqqxn59BxwnWTejXOm/liqVJOlmYXUfDx48WK9Lt+7nFUXxCoH0mJg2fPvt9W2AP6rn5SXBYK4AwCuvvNKsadOm55CR5doLgE2aND3+0UcfVQXkmkVJkv4kuKbPePzJJ5MjIiKoabpP0zRfWFhY4Lnnnk/MHGDyikwTSWL9+vemVa9e/QwAOp1OHwBPg6iGZx9zPxYJ5J/JJUmSssj3339vAMCePXvGdurchQDStYxqc35FUdhvwKDDuq7nqSLtwWw4Ckltxasr17RqFUMADAsL9QPwtG3bjl+nfr0AyJstYUmSspHVhSZZ6974+GMAfIZhBABQVVUqivBWrlzl0qKXlvYE8kbLyuoSk1QmTnxkdcUKlQggLTQkxA8gvV3bdty+fcdC02YiMTFRz8tjp5IkZTGrhCfJWgsXLToXEhJC02YLCKEQAIUQVFXVZ7PZOHjw4K9JFkMuXvhMUlgTSJcuXeo9fMSIzREFC1JVVa/LFeIXQrBLl27cvm37EsMwAECOKUqS9L8yBcZKUxIS9odHhNM0Tb+iiCslOzVNIwBPm9ZtuP/H/UsBIDU1Ndd1Pa2Wr6qqSE5Ojhs4aBDtNhttNpvP6XT5hBCsUaPGoc8+2fKQqqpARrbuXBngJUnKYda4IckSo8eM2m+aBg1D90OAmqZS13Wfy+UKPD7j8e9Jlg4G0lwTUNxut2KNEZIsuHjxkk+qVa8eAOBzOBxeVdM8hmGya9eux9auWlszeDdVJp+VJOkfWZMvJ04cv/u22zr6AXh0TaWqqgEAvtjY3mdIFgRufKW8f5K55br3h/0Thg6978eiRYtSUUTA5XJRKMJXvHgJTp067XeS1QBg/fr1Zs5dsSRJeYrb7VacTieefOqJ/YahB5wORwCAt3KlykxamTwTyD11T4LdZmuCpUbSG28sb9EiOjgmqvhN0/QB8FQsX5ETHpwwh2R1IPdcvyRJeURwHaNY/976uxs0bEBdN9JM0/SNHTP2GMlysbGxak7vISYgrGvQdR0//fRr/OjRYw6VK1+eALwhrhC/rut+AGzbui3nzZ33iHXf3NTSlSQpj0hikgpAXPJcajlg4MAzANKrVqnG1avXPA3k/DIdkmqmf9datvSVl/r07UshBIUQ3rCwMCqK4g8Pj2Dv3r33f5369URFEdZyHBkUJUm6ZioAjBo9aqMQgr169DpLspjb7VZyqsWVObMPSX3Dhg1dJkyYeKlMmbIE4HE6HAHTMLwAfOXLV+DMmTM/JVkIkFv8JEnKArGxsSpJsfzV5R+VLlvaN7D/wCdIKjmVcSZz151k3zlzntnYsGFDAgjouu4LCQkJAPDZDINxsXF89tnn+gaX4sjUYZIkZQ2rhTV3/qxb+vXrx3Vvr58H3Ph1i8H1lVYrseTGTz6ZeNfddzMsLIwA/Ha7ncHJIVatUpWPTpq8+fyZ832BjAxBuWk5kSRJeZzVXX7vvfcqPTZ9+tZvv/yyQuaf3wiZM2cfOHCgySOTJu2NatCAAHymafptNlsAgMdms/O2jp0ufLDhg1dJaoDsOkuSlM8Eg69Vi6VBUlLy6nbt2hNCEIA3NDSUqqp6AbBmzZqcOXPWwbNnLzUN3l1W85MkKftlJG3N/pbinydX1q1bP6Z//wEnSpYsRQBel9Ppt9vtfgDe0qVLs1evXj+9npw8jqRpXafsOkuSlG9kXnB9+ty5HnPnPvtrnTr1iIzMPt7gmKJHEYItWrTismWvrCNZ3rpPblibKLPzSJKUJTJnwSHpWLfuneS27dp7bDYbAaQ7nc6AoRs+AP7IyBrs26fvZxs3ftbCun9u2MESDIYyIEpSXmdl08nJa8g8FnjowKF7x4we81W1atUJwO90OvxOpzMAwOdyOdmhw62BpYuXPkwyDMhIKJvT1w/8UZdaVVV8unnzzNmzZ9/wSSpJkvKJTAlkKy5dvnxG1y5daLfbCcDrcDhpGIYPAOvWq8vpM2a8n+b1drHum1smV9wZrVWVpFi9ek3ylClT+MUXX7QEcs81SpJ0FUgKkiJ1R2qtte+/X9n62Q18fBWAomkaLl++3GbsmLEHKlWqRABeu93uN00zAMBbpHARxsX2PrVy5cq2drsdQO4ZwyMprKVEDocDr618Lal27docGj/kEMlIZOR3lC1GScorYmNjDQB48oknPnjwwfErgBtX58RqRQkhsPnzz+fdc889VnZwb0hICAF4hRBs0uQWDh82fJaVCQe5aAlO5i6y1+u9/eGJkz4rUbIk7Q6775nZzywFZN0YScpTSIrgkpbQnj177mnauOmcG7XNz2phkWyWuCDxtXr16xOAxzRNv8Ph8APwFStWjB073rbzzTffGmrdL5cs1BZJSUlqpkmiohs/+WxG127dGRYaRgCX69erz23btr2WuTUpSVIeYAWZt9etHlK1WlUOHDDgLMmiAER2ThZYgcLjYbOEqdPSihcvTgA+p8NJRVF8QhEsV7Ycp0ye8jrJ4sCV7Xy5rjv6448/PjRr1qyTNWrUJIBASEiIT1EUdu3S1UPyhg9NSJJ0Haxa0CTDxo0b9xMAX5MmjZmamtoCyL5ZVKtbuW3HjpYDBt5xUVW1gKZpnhBXCIUQPofDwQ4dO/y4cuXKwdZ93O6cX4IDZLxmVhf+hx9+mD31scc+DbZ0CcDjsNvocjkJgFPcU0mysHW/HLxsSZKultvt1kiKTz75bFjTps0Cuq5fLlu2bGDp4qUbrNuz4zEBYOXKlS3btW9/HgDtdrvfYXcQgKd06TK8b9iI90nagYwgmpuCitXCfmf9O4tbtGhJXdcJIGDazICqKtRUlYau+woUCOf0aTNWkXTkkq6/JElXIzgbrU54ZNJBRVXpcrk8TqeTHTp0WA1kdF2z8vGsoJicnHxLixYtLuKPoBgAEKhbpy4XLFj4EUkDGV35XNFK/BMVAJLfeGN+eHi4TxFKumEYVBSFSkY5WQLwVKlalUuXLr8f+N/EF5Ik5WLBL6v4/vtdw1u2bOlHRjcwIITwDr578CWSzYH/zYydBY+H1atXt2jWrFk6BOiwO/ymafoBsGaNGhc3bPhgWTAo5trF0Fbrb9asWdWaNruFAHyKmrnOdkY52ZiYGO7fv3+qECJXlpOVbqxc+WGW/hdJER4eHiDpWPfOOw99sfULxWazqT5/QABAaFjYlUw2WcHtditDhgzxbtnyZfRzz81/d/PmzbrNtAX8DCA9PV1p166tb+L48V06dGg3SAjhJSkSEhICWfX42aFKZGQhEXyJRKaXSlEEVFUVRQoX9hQrVuwoSZw/f545dZ2SJF0lq4u6f/8vw1u3bksAPpvNRk3TvTbTxjsG3rEGyJquNEnV7XZrHrLl4HuHngcEHQ67tRwn0Pv2uLSvvvq8VfC6jNw0nvhXrBbjM88/U7Nxk8YE4NM0jQCoaRodDocHgK9F8xYndF02FCUpT7BmVUlGzHp69j673e5TFdWnqio1TfNGhEdw5uNPvON2u5XrTcZgBTmXy4Vn5s49pxsGbTabzxHMrt26VeuLn3z8SRsg54tpXa0rky/vrB1duUolAvAZhkFN0wIA/KqqskWLlpz48COrNU3LtUMCkiRlYi012bZt29AWLVsQgFfTNCqKciUwPj3r6VXBw6/5Sy2EQDAAG2vffefZkiVL+hVF8QYnWjzly5U7NfPxx9sCeW5XiAoAq95M2h0aFkrTtPkMw/ADYNkyZXjP3YO//Hb7t51IatZWyxy+XkmS/okQAsjYs+t4eMKEX1RV9Zum6VeEoKIoNE2bH0KkN2ve/OCHGze2IOm41haPdb9znkvNBg66gwD8DoeDALyR1SP5xhurnwOAuXPnmln1/G4QFQCGDB+y1e500Ol0pauqyi5du134YMMHzximkdPXJ0nSf5GYmKgnJSWpb7/99n316tf3K4rwGKZJ0zQDmqb5APiDOQ8Dt3bsyM2bN4+z7vdfH8vapfLww498aBo2n2EYPlVVfaZp+iZOmPgRydDctkbxKqlCCDRu2uQrCPhdLheHDR32w7FjxypZtwdbynnteUnSzcf6otpsNgwYcMdBIQQdDkfAZjOpqQrtdhtbx7ThwIEDV9/WqRN79ujFZ2Y90xn47+my3G63Fhsbq3755dfRTZs0S1MUxedwOvwAOKD/gDOZlgDlqeBhvQ7f7Pyud5OmTdJCQ0P51MynfyNZFsj6dZ+SJGWzYHouY/Hi5TNKlChJRVF8NpvNLwB/1cqVfWPuH7t+w4aPmwHAzwcPNt2/f3+ja30sKwhPmvjoR06ni3a73aeqqq9smbKX3nrzrXsVRcmTuQmtwNehQ4eulStX5ry5z/5AsiQgcy1KUp5jJV44ffp03YGDBhGAPyQkxA8g0KVzF65YkdxZiCtDiVdaPdcyvmgFiLMXzna8rVNnLwCf3W7zmqYeuL3n7WuDh+WlyZbMFJLKHXcM+nLSxEk/kywNZN0ieEmSbhCSSnAsr8TDEx/5TlU1r9Pp9ALwd+ncxbd9+/ZOABAVFaVbQS0pKUm91haQ2+02AOCVV15JqFy5MnVd8yiK4o+sHsl5s+c1cLvdOV4+4XqQVF566aWFW7ZsqQTkjvoykiT9dyoAPJqQMKlS5co0TdMDwN+06S2eNWvWdAOybrmMVQCKZJGEaVMPqZoWCAkJ8Qsh/H169/s12MLKN0tYcmMKNEmS/kUwe46a8skn9zZs1DgA4BIAf4OohoG5s+d3AbJ2DaEV8Ei6+vbtRwDUDSO9VKnSnPDwI4nAH9nC87LExMRcUXRLkqT/KFOQKtR/4AAiuBSnV8/YwKqkVZ2ArM/6Yo21Hfztt7ujW0X7APg0qP4K5SukffTRxq5WtvCsfExJkqSrZZUrcPTs1fN9IYSnWLFigftHjkk59fvZrkD2pMKyzvnVV1+8XadOHaqK6lGhsn7temczdZ9zXTda7lCRpJuDIoTAgAEDPg4JDWXx4sX9j01/LMU0MzaZZFerzQqMb7zxxvISJUrQbnd4AHBo/H3nrNrPyGWBUQZE6UaQ4y65QGxsrCCJ4sWLfxwS4oIqFLSKiTmWnp6O9evXm8nJyf7sfPyLFy+qPp8PqprxcShboQwA+AGAzD0ZuNxutyKEIEn9t99+KwnIQCllD7l0IReIjIxkcMb0+ZIlSvY/eeJEtUuXzuskxcaNG7M1KAKAEIIEgYy92VCV3DWsSFJMmTJFTUhI8JN0Pfro5I+6du2+AMDi5ORkBcEgLklSPpNp6UzohQsXJuzevfv94M+z7ZeX1ZV+5911yWXLlbnSlR4/fsI5kq5M15VjMj8+SXubdu03tmzekrl5DFTK+2RXOpcIdhEhhDjncrkeL1GixPDgTdnWGqpSpQoBoHzZcodKFC8BT3q6AIBdu3YDQCB4Xdn18Fcl+LqEv7lmzbA27dp9sSnl4+iGjRoGABQEcldXX5KkbEIyW+tD//mxgn8X7NjxVq8QgkIIRkbWOHfmzJkIqxV7I67lz9xut0LSOHv2bOUnnpy5t0aNGjRNk06n0z9m9JhkkmZ2LyUKZt2RjQdJyi1uxBcyU2AsPv7h8QRARRGeWrVqBzZ+vHEGgBwpDGVt2zt8+PDtA/oPvCwUhaqq+kybmVaubFkOvuPue4HsTZgrF4Tf3OSbn0sJIbK9uJQQgsESBb+XKl/mheIlSkDTDf/BgwfF22vXRpIMWbt2LXNqnPHcudO2n37Zb2MgkO50OtX0dI8SGhbG/ncOdAohEBUVlS2P63a7tYSEhMDeH36YumPHjr6A3E54s5Fv9k2uRIkSQgjh69U97rt69ev7A36/dvr0qcDPv/zcDUDBhIQE35QpU3IkMJoOR8Bms1EIoaiqGgDp11VNlClTxk4yWwJjfHyiPnXqVN9HKSkTkl5b+Wj6pfSMutTJyXKS5yYiA+NNbsiQIV4AKF6kUGLrlq0OCiEUu8MR+PDDDzly9OhewW2DOfI5+TL1S+XsuXOCZODS5ctKwYIFbbVr1z5hGEYKAERFRWXZxJTb7VZiY2ONF18c4l2zZu2kRyZMmPHzLz/7GzZp+D4A7Ny5U87ySNLNxBrT++233wZ37tSZiiI8mqZ5b789lqdOnWoBACnuG5euy6pAeOc9d/YsVqKYV1EU1qlT95dHHnl0yr59+wpnw+NdCfwjRox1V4+sQV3X/JMmTZ5P0sgrFRElScpCVrIIkmEzHpuxzuF0+u02u0cI4R8xYuQWkoWCt9+o7qQgqU6dOjWlWNFifHTioz9ZmbeD15uVLVg1eM7IBx544LPw8AgCSG/YoCG3bPn8OSBnJqAkScoFrGBDsuw9dw+26i+nV61alc8/v2AGAIwceeMqBJIUj0ycyHvvvmcOyTLAlXIP1x2cg0uiNACKzWbDxx9/HBXXu8/hkNBQ2uw2r6Iovm5dup8j2RyQZRAkKde6Ea21lJQUjaS6YcOGO2rVqkVVVT1CCG/NmrUuf7hhYw8ge7L8/J333lk/k2Qh4I/u9fUgKTIHuZCQEMyZO3dJkyZN/ABomqY3JDQkAIDjH3z4gsPhsA6VEy+SlJsIIW5oMAIgTNPE2rfXfl+mTFkauu4xTVugc6cugX379t8OZO/6wb+SFV3nP28t3Lhx46DevXvvCwsLIwBqmhZQVZW6YfgLRhTkitdWbCFpIiMoysAoSbnFn77MBW7QYyrBGtNFXl/x+nelSpamrhseRVF8PXv09KWkpNwOZNSKye5WbFZ2nYN/F0hJ2TR07ANjv6lbty5VVaWmqX6baVBTFQohCMATVT+KH7z3cW9A1oiRpFzFmiklKZa/umL2c88+9waQfbkZM8s03ljizeQ3v6lcqTINw/AC8DVv3jzw4sIXe2Q6Nre3phS3260kJiaWufvOu3dXqVzFCoBeu93u1zWNmqpk/NE0AvB07dw1cOLYiTsBGRglKddISUnRrL3CL7+8ZO2tt97GFxNf/Ay4cUXiMwVHc/ZTs+9o2KABAXgA4atarSpnzZkzlmQEkHUtu+xgjSnu2LGj5a233koAHsM0/YqiUEBQFQpVRaGaERh9qqpyYP9B3wS70XKdryTlEla3Txs+ctS6woWLsHy58p6tn21tD9zYPbyZg91HH31w9/Dh9zGsQAEC8FesVIkTJkz4gmSIdUwubV2J4NCAI6Z1zDrTNAOqqvoAEABF8G9FUWgYhs/QdT45c+Y3wfvKwChJOS2YzUVLTU3t37Vbjy2hoaEEkN68eQuuW7euAnDjkxuQFFYrlWTbiRMnrq1Zs5YXAHVN4y233PLNyy+/PJJkqHWf3JaAISoqSgeAmjVrLDFNk0IIL4IB0fqjqipVTfUVLVKUa95aszF411z1PCTppmO1znbt2lW8S5euNAyDISEhPkVRAp07d/GfOHEiErj+oENSuZZurzW2aRgm3nz7zeiuXbu+XqF8BQJgqVKlOHbsmB937tw5KiQk5MrxuSVARkVF6QICtWvXesU0Taqq6hV/CoyarlEI4atfvz5feeWVZsCNGc+VJOkfWMHqvffei6hbt65XURRfoYIFAwA8ffr05fnz52sAOdsay7xvWtd1vPXWW0/06tXrt/CICAJg/fr1OePxGb98+fXX0dZ9gsElx8Yfg2OMgmS9wfcMviCE8JmmjRljjH8ERtNm0jAM3y233OLZ8PHHjTPdV7oJ5Yrf6BJgZbApVapUGd3QBUmcv3BelCtXTq9Xr8Eel8t1+XrOH8zELUhW3XfiRCjw32eUhRB+AAG32614vV61e/fuD7/xxhvNxj/00KS4uFh8/fXXmDhhYtkB/fqtHTly+PJz585VCxbyyrHUZUH8dOunxm+HDzpJQkUAqsh4TYQQ0DQdAX/A7/F4UDCioF4srOAN2+EjSdI/sGZ2v/jqi1U1a9X0A2D9qKgD85+df49p2q7r3MGgpADAK6++duG5F16w1iJe12RJ5vunp6fHzZ7z9OYmTRrRmvEdNGhQ4O233x4YbGnmSGvX6g4/4n6kZZny5QJCCJ9dU2hogrquUdM0HwCfy+Vi+/YdmJCQ8NCFCxeKydrVkpQLWLtJZs6a+XLxEsV59x13/Xbo0KFqwZuvuUsXXHaj2u12DB06dFHv2Dju3bWrE5A12+yC6bqsRAzqjz/+2GPU6NEbKleuTACBKlWr8tl5874mWRzIke6p6na7ledfXLDZ4XBQ13Wfqig0TZO6rvkNw2DLli056+lZG9K83q43+NokSfo71swvyYj77hv2xYC+fY+QrAhk7DC5jlMLAHA4HJgz99klhYsUYZ8+fU6SbAxAZGWQslqFwX+Ld9555+WWLVqeBuAPCXGxd9++3+/atasgcMODowoAjZo2/UJVVZqm6dMN3Q/AV6RIUfbv23/TL7/80sbpdALI+AUlW4qSlAtY3TaShb5OTV2xatWqmsD1t+iSkpLUffv2lRr74LglpcuUoRDC36BRo7VA9i0UDwY9BQB+//33qOHDhp9XFMVvmAY7drxtT6Z8itnerbYC8MaNGxvWq1fvlBDCZxiGTyiCbdu056yZs59QVfX/HS9JUi6VFeNxJJUVK149FBoWSt0wLoeGhLJVTJv3rf3QWXGdfycpKaOlS7LBxAkTTttsNr/LFcL7R4/5jmSBpKSkbF/OE9w9pD09+5nVBQsWIgTSdF1ndItWuz7/5PN7g4dpwfWjspUoSbmRVTo1KwKG2+3WFCEwefLke8qVL+e32WyXQ0JC2KRJk2xtMWZmZQUi2XjQoEEnAFwqW7Ycp02bNgzI/nWCQgiQVLp373YBgD80NISD7xn8I8kSwI3bXilJUi5hdcOTk5N71q1bl6ZhptlsNl/btu2+IFn4RmXktoLjW2+taxkVFUUA3m7duu8P7rO+psXmV8N6/suWvXJPmXJlLjnsDk4cP34vycIAkJSUdD1jt1I+J9cx5lOtWmX8bZqmrus6AggEFEVRy5UuVwqAA/hj7WR2io+P97ndbqNbt05f9OvX/7OwsALasaNHK2zbtr2L2+3Gxo0bs7zVGAy2AZKFv9/1/fijh4/a+/ftv/uxJ56IEUL8npSUpMbFxXmy+nElScrlUlIyWkzvv/tu38jISH9oSBiHDxv19ddbvx4E3NiJBuuxzp0716JixQrnixcrwYnjH+0FXPes+1/KlLKtTJs2rdmuTdsfL168WCrztUjSP5FjLPnUxo0Zf3+86aPfwyPClUH9B6WOnzi+jRDiXLDFlGWlR//Nzp07SVIcOPDjEX8g4D1x8ndfhUrl5pL8SgjxG5mkCpGl16MACLzwwguPVShXHlOnTp3rdDoPJiUlGbKlKEk3N2EYBp59ds6+qdMm7yAZBuRMxbvU1FSdpDh48GBigwZRtJl23xMznlr6wYcfHPvso4+qAlm7K8ZqFS5auOiNdW+vm6coSm5NiSblUnKMMf+iz+dDuXLlXwpVzPZCiLNJSUlqgwYNvDf6QrZt2wYhBL/avv3IwUOHUKhQIdVm6Ml2h/Pjc570rSQLlyhRQs2qsqhWa/iewffc3rlr55GBQEDExMT4suLckiTlIzm1Ti+jZnWSStIYPmLEBkVR/G3btAn88ssvAwHgxUUvfTpq9Kingodn9fifyC2pzyRJykWCJVFzPO3Xr4cOtYuOaU0Avv79+v9IsuCtt95qxsbGqpMenXTy5UWLphuGIbu8kiTlbySFlT171Ogxn5mm6S1QIIL33/9APADExsYaALBmzZq4Bx8ax7ffftuqIS1beZIk5T/BVqoGACuSk+cUL1nSp6qq55amzfZu3769QHABtrCC48CBA18aM3bsDpJ2uUVPkqR8JyOoRWuqouD7779/pk3btgSQXrZsOT7z9DP3AX/sTLG2QZ4/f7Ro9x492HfAgEGALCsgSVI+Yi2VMU0D23dsf7pjx44EcLFYsWLsHdd3IfBH7klLdHS0pmkamjZrNrNfv/4+ko2QkW1cBkdJkvKu4FIba8eJa9r0GbMbNWpMAJcdDjvvuvOuoySrxCL2/y3LsfZTf/zZpt63NG/ui43t01cIIZM8SJKUNwWzAV0JYL8fPtNw0qOTj0ZEFCKAdNMw2KN7jyNbNm6pZR3/N6dSSBoxrdscadCg0SGbzX4jLl+SJCnrBANc5qzdjV9+eeHKFs2jL2maRgCXTNNkj249ft++fbtV4fCfWoCKoiiYNm3a66VKlQksXLhkAPD/u92SJEm5SlIS1T93b0lWW7p0WXKvXrezaNGiNAyDADxFChfh2LHjjpO0tvz9Y7fYmmy58947GxYvUYKjR92/m2TBYLJZOUMtSVLuQFJkKlWQuXVorn7nnVrjHx7/cpeu3ViqVCkC8ANIdzqdjG4ZzaefmvMcyRoArmrRtjXRcvr8+TZNb2kaaNq0GUmGBm+WgVGSpJxj1Z/5cxdWCIEf9vxw67hx44cPHDjoSOWKFdOKFC5CAH4hxGWn08m69erx/jFjdu7Zs2esdb+rXaxtBUaSbQcMHEAA6WvWrOn8X84hSZKU5f7c3SWp7Ny5t/FTTz31WP/+A1IbNGjIEiVKUlEEXU4nVVVJ03SN9erX45ChQ7//6KOP7iVZAMhYgvNfkkIEu8sqyZDadWp/GBoaxsWLl74J/DFrLUmSdENYe5mDf0DSeenSpbKLlyxZePvtt6e0a9eOIaEhtNvt1FTVr2nqZQA+0zTZoEFDjhw18rcNH354D8krCWevdb+zNX5Zt36dFaGhYYyL67sk87ZCSZKkbOV2u69UClRVFQ6HA7Nnzx3+4EPjf2jRoqW3WPHi1HWdAHyqqnoVVfUIIViwYEF27NiRU6dO/fGLL74YS/JK0LreOjJWK7Nho4arbDYbS5Qo/WLwJhkYJUnKPn9eZvProUMtFi1e/GbnLp1/Ll26DAEQAG02m9dms6WpiuJTVZWVK1Vm5y5d0hMTX1x9/PjxUVbi2+A5sySDjxWoK1Ysv0JVVTZt0uQTkoWQ0cWWEzCSJGWtTF1mAMCnn35aZ+SIkWvbtm3LiIgIAqCmqb6QkBC/EMILgCVLlWJ0TAwnu93fp3yYspRk3cznzMoUYcHxSEGy7oABA34H4I2Pv/cyyajg7XJ7oCRJWSOYpEEDAE3TsGPHrvrDR4x6pWHDRnS5XAQQME3T53A4PBDCL4RgZI0avPvue85PnzE94ZdfDgw0jD/qVbnd7mwpUG8FPq/X2+H2XrcTAMMLhi8N3iy70pIkZY3Mwcvj8bRMSJj+2i23NPOEhoYSgN/hcHidTqcPgM/lcrFldDSnT3/swqZNm2YHu7AWBYCSnRX2rHM/8fTTTWrXqRMQQrBq1eqvAYCcfJEkKUtYS2VIOt9cs25AbGycJzw8o8tsmIbP5XJRCEHTNBkdHc2pU6en7N+/vznJctY5YmNj1RuYUVslqdx334ghIaGhdDld7N691zJABkZJkrKA1foiqc+bP29T3Xr1CSBgGIYvJDQkAMALgA0aNuKkiZM27dixo2Pm+ycmJuo5MNmhAECfPv1+ME2DxYsX54IFL64B5H5pSZKuU6YEsOG94/p8WqRIEQJId9gdNA3TB4C169TmzKeeStu5c09spvFDLbgv+YbvMrG2Hb7zzju1KleucswwDH+5cuV8b731Vn9AJq2VJOk6WAHk3JkzwwYOvPOkrmnUNM3vsDsIwBsRHsEBAwae+fTTT58lWTR4N5GdY4dXIzo6WlNVFUOGDV9WqGAhAvDFxsaSpAvIuQqHkiTlcSRVksq5cxfvGzXyfgohaLOZPsM0/QB8ZcuU5YIXEreTbGLdJzfsQbay55xNS6vSuEmTAACf0+lk+/YdE0naoiGT1UqSdA2sAEfSOe6h8X4AfqfT6TdNm18oCrt17cbVq1c/o+sZQ3U5NIb4l6xiWMNHj14eFhbmV1X1Utmy5X2vvpp0HyD3SUuSdA2sdYokCzw588kUp8vhs9lsPtO0+XVdZ7OmTX/89tvvrWw3/6+sQE6yxkO/+eaboZGRNbyapnk1TQ+0a9fxQOathpIkSf+JFVw2bfr0taioBhRC+BwOh18oir9D+w6/fv/992WCh+aqCYxgK1ccO3bM1a17z590XaeqqmmFChXmhPGPDBPi35PbSpIk/T9JSUlqbGysev58eo24uN5nAHhCQ0P9ALy3duiY/vvvF0sEjzP+8UQ3WLAbr5A0Jk2a8qlhGHQ6nR5N1djx1k77SYZD7o+WJOlaWGOLbnfCkoiIgnQ67T5VVT1NGzfl5s82zxFC5LpWF0kRHONUXn31tc1lypRlRhda85YpVcaT9GpSPCCX6EiSdA2soHjwp9+rtm3b/hIAn2kzvUUKF+GkCZOeBq5kq8k1ra7MLcB77rmnS/ly5QnAazNNT3h4OEcMG7EMANxud65q4UqSlEcEJ1z0+fPmLy5evDhtNlu6EEqgV8+ev5MsjIyuaq6ZaElNTdWBjJrTa9asebtkyZJpyAiKPgC+jrd23EOyfGxsrJoblhFJkpTHWC0vkoWHjxhBAAGn0+ktXryE7+mn5jwGQCTmom10Vp5FkrYZjz/5WdWq1SiECLhcIQSQFhfbm3t27ukNyOU5kiRdOwEA584dKtSkSZM0IQQVRWGnTl0CJCOA3LFbJCkpSbX2OZ88ebJvbO8+n0VEFCQAj8vlCgBIj24RzS2fbZ1F8kYmrJAkKb+xWlWbPt30bK3atQIA0nXdCDz11KwtJB3I6EbnZGC8UkMGABITXxrRt18/2u126rruczgzgmKb1m34/vr3nwwepgqR47FckqS8ygqMy5cvf7VM2TIEcLFJk6ZcvXrNSCDnJi+sGWcAMAwDR44caTxkyJAPS5YomZH/0W732W02vxCCgwbdyS8+/+KpTDPnMipKknTtrO7prKdnLSlRogQ1VfPFxLQ5mp6eXhsZ5QFu6OQFSZF5eQ1J5+OPP/V09+7daRgGBUQgNDQ0oKiqx7SZbN269d7vv9/dP3i4DIhSriPHdPKwE7+fECShaZrqdNhPmqb5LQAhhAjciMcnKZKTkxUhhB+An6SxfPnyob169ZyQkrKp2OnTp/yGYcDusItz586xfPnyeu+4Pj88/sSMdkKI36Kjo7VNmzb5bsS1SpKUz1ktxrFjxy4tXrw4nQ4nx4x+YK9VUOpGXEPmiRKSBbZs+WroiJEj91etVo0AqOu6Pyw0jAA8ABhVP4rLly5/l2RJIPftxpEkKY+zAuPkKZOXFi1WlC6nizOmP75H01QgGwNj5sJawf8v9N3OneMmTZq8OyqqgVV61eN0OgK6rvsAsFSpUhw5YtTh1NTtwzOfJ7uuUZKyguxK52ElS5SkpmnweDwwjOx7K5OSktTk5GQEu8w+kuaXX345Ztq06cPefffdMlu3fg6SPpcrRPH7fcrFi5f8BcILaI0aNfZ27tRpysiRI+cLIc7Gx8frxYsX99+orr4kSTcRaxfJF199sbJeVH0CYMLkhD2apgFZ2GIMds0zT6o43nvvvWFjxow93LhRI2q6RgA+h8PhN4MJce12O2/tdCsXLl78/oW0tCu1ZORuFkmSspU165yenl6vfYf2PgAcMuS+PVk1xhgsdXDlPCSbPPvcsyPujb93X906dSiEIABvSIgrYLPbfAACLpeLbdu247Rpj31++vTpNlYtmeDyHdl1liQpe2XaEugcct+QY0JRAu3bd/guePM1ByErHRiQsQ6RZLOVK5Peuuvue1i2XDmqqhoMiCE+u93uBxAoWKggu3Xrztlz5nz+7be7emRapH3Dlw1JknSTs1J3PfHEDHd4RASbt2hx9MyZMw1xDQEp8zpETdNw2Xu5w2srXlvdu3fvQKHCRQjAZxiGz+Vy+QzDoKZpLFy4CO+48w4mJb3x4YnTp3tlmlBRk5KSZC5FSZJuPJIqAPz84889mjRukl6jZk2ueuvtMcB/2/mSeeyPZNjrK17/4PbY2EDRokUJIKDrui80Uy3qYsWKeTt16rz38ccfn0GygnUdyAXVBiVJkoBgt3n0/aM3RhQqxHEPPeQmqVvZbK6CVUSr8Ouvvz6mR49eu4sXL0YAAdNm+oKJHrwAWKNmTXbr1u3UG2+8ESB5a+ZryBQcJUmScpbb7dbcbrey8dON7erUqecbMPCOSySN4Djf33Zlgy07VVVV/PLLL5GPut0/1axZk1qwDrXL5fQrivABYI3IGhz3wLiza9asnUiy+q5dez7esWMHV69e/ahVsEpm25YkKVeJjo7WSOqjR4/+JDKyhvetdetaAn8frKyfG6aJF15IfK5N23bpumFQURWfy+XyQ8CrKILVq0dy1OjRx9e9vW4GyVDr/iTF5q1bO61YuTLwwvPPH0patqxS8Kb/mcmWJEnKMda43uHjh1v2ir2d98THf0TSdLvdWuY0XkIIrF+/3gQAks3dbveuwoWKEABdTpffljHL7KtYqSIH9B/4y6rkVQkkS1n3t1qn1v/v/nl3uXnPzVs5efJkLlu27EW73W4FaRkcJUnKWSRFcBbYnDJt8vKYmNbctm1bS7fbfaW0QeZlOJs2bW45cOCd51wuFw1D94aEhAQABAoUKMBBdwzkiy+++CDJ4tb5g3uiMwe7K2OKTqcTM2bM6NumTVtOnz51iaaqQM7ngpQkSfpjXaPL5cIddwziXYPu+jx4k5YpOKpvvf22u1btOueEUOh0On0Oh8MHIBAVFcU5s+d87KMv1jpnbGzsPy65CbYeFQBo2LBhjSaNm9A96dFlMhO3JEm5RrDVqK5atapr165dz7+08KVHNU1DfHy8TtJ4/fWktS1atiAAhoS4Aqqqel2uEA7oP/DiylffuM1qBQaLbF1Vi08IgdjYWENRFIwb+9ALraJjuHTp8vsAWbtFkqTcQwWAxJcSP5w2bSoP7dlTyDBMLEh8aW3VKlUJIC0sNDQghPCHh4dz+rTHviXZNnhf5VqW3Vj7qUlWahUTc7R69cjfSNYLduVll1qSpJyVqZh9gWWvLPs86Y0Vj7y4aNGiSpUrZxSgCnERQHqVKlWYMCVhoc1mA5DR2hTXMaEcGxtrAMDkKZNXlS9fno8//vhrGT+X9aElScoFrIkWkvq77737YWSNGlZVPgJIr169Op9/7vmXg5l41KzYrWIlnXj/ww+HhkeE+6KiGmwLJqSVWwMlScp5VqBbvnx5q6ZNmhKALzQ0lAA8kZGRXLRw0YvBoJiVS2sEAIwZMyaieIli3oYNG/Gtt9bFZL4eSZKkHOF2u5XY2Fj1999/b92z5+3nAHjDwsICADylSpXiE0/MfEnXdSDrW3ICAIYNGxZeuXJFb4GwMH/Hjh2bAXJXjCRJOU8AwOOPP/GD0+mi0+n0a5rmLV2qNEeNGLVQVVQgG7q3Vld6U0rKiNKlS/vDC4Szbdu2zQEZGKW8SebLyydIKiT1TZ9+Nn/RokXl0i5f9vn9ftrtDq1VTKuF81+Yf48/4NdIBoKJZrNMcnKyCoDf7dzV4ezZc4rL5ULh8MJZ+RCSdEPJwJg/CEVRAgB8b6x6Y8gPP+zTHE6HkpaWFmjTps2ZZcuWTff7/UpSUhKzOigGl+v4SVbdvn170/Pnz3nKlS2LDh3ayM+WJEk5x6rc98bqN/pVqVbtsqqqPgCeenXrMSXlkwVA9i24tioWLl38yqLSZcpSCJHeOzbuMslGkDkaJUnKCVb2bZKFp82YvsPlctHhcKY77A4OHDjoc5Jh0dH/m1Aiq1hb/3bu3FmvbZv25yCEx+V0+gf1H5gkhEBUVJTc/SJJ0o1nZbwhWb5v374E4LfZbL4KFSqef/XVlbcFj8nyvctWUCRZe9iwkacN3aCmab6yZcrxxReX1Mh8bZIkSTeU1VVN3b7t+Ro1a/kVRfFqmsZBA+88pes6srOlSLL+kzNnnTZNG3VdSwsNCWVcbJ+VJJX/kEVckiQpa1kB6KWXX/40IiKCQoi0IoWLcP6852eTVLK61WaNVZKs/9RTc34vUCCcdrvdB8DbtEnTwydPnqwJyNaiJEk5yAqMDz300Iaw0DACuNzpts789ttvOwF/tO6ywJWcjufPn689cuT9J0zDtIJiWssW0UxakdQvix9TkiTpv7MC45133/1BeHg4HQ5H4NYOt35FMgxZtJjbSlZLUvnkk83d27Rpe1rXdTqdLh+AtHp163PdmndWkHQGk1jI/dGSJOUcKzB26dbtgwIFCrBAWBjvuvPOFCBrdp1cqRFjGFi0eNlrrWJaU1EEQ1wuHwC2a9+eG979cOWfsoVLkiTlHCswduve/YPQsFAWLVqUT8x4/BNrGc/1nNsaTzx79uxtY8aOXVe2bDkCSA91hXhVVWHV6tVPbPhgwxi73Q5ABkVJknIJKzDefc89H4SGhrJkyZJc9NLCTcC1txhJCmvh9saNn3Xt02cAM2rEGD7TMDyqorJH1x4nXnvttQbBu8iktFK+IgfJ84ny5cr5A4EABImw0JBrPg9JEVzi402cn9h9woTxb3z++Wa/y+Wkx+MRRYsW1YfGDzt//8hx7cOLuL6eO3euOXr06PTsWBYkSZJ0TazF22+vffvzYsWLMbxAAS568dpajFarj6Q+b968HnXq1PEA8Dsddi8AX2T1SE6Y8MhckjUBOfssSVIuZS3w3r5j+4N16tX1q4rCiQ8//J/HGDOVRSj06ScbN9erX5+apgVcLpdPAGzTpi1Xrkx63DperlOUJCnXyrQlsPTgewcTALt17fpR8OarDowjR440AWDNmrfeaNigIQF47XaH1zBMNmvW7IeUlM01VfVKPkeZGEKSpNyLpAiWPA2ZNm3qW0II9urR8/Tp06djcJXZbayJloSEhB4VKlQ4pyqKx2azeUzTZN/e/faQLBI8VAZESZLyBmtZzTfffjM9skakr1q16ly+fHlXAOLf0o1ZgXPNmnc6N2nc1GeaBg3D8ISGhnLMqDG7eJElgexJRCFJkpRtSIrgn4LTHpuebpom77tvxFPAP48FJiUlqW63Wzl79myXnr1uJ4CAoeueAgUKcPz4CXuDlf5kQStJkvImkooQAl/v2DE4skbNy23bdrhgBba/WmNoBTuSFRISpvoUVfHb7bZ0l9PFceMe/IFk0czHSZIk5VUKAEybPv39suXK+Z577oVnSSp/1Z0Ojks6xo0b/1poWChtdpvH6XRyyJChu0kWA2RQlCQpHyCpJiUlqSRbDL43nu3b33qJZEm32/0/O1Os9YdvvLH6zsaNmlDVtMuqqnpaRbf6fseOHaUAGRQlScpHgi1BY+vWre6OHW/jI49Mmg/8MfOcqQtdZ0C/Ow6riuJVVTUQE9OGGzdurGydI+eegSRJUvYQADDx4UnTWkZHn9q8eXMHkkpSUpKakpKikdSWLF62qnz5ChQCl4sUKeqbN++Fx0lqcjeLJEn5maKqKqZOnXLmjoEDDgNXlvUIknVuj+tNAF7DMDj+wfEHNU3WrZIkKZ8jqQRbh3VnPDbt2L333P2adVviwoWrS5QsGdB13VO/fsNTGz/Y2NDtdmtym58kSfmeFejS09Prrl69yvf2mjVLSTa8+97BlxRFSS9apCinTJ6aCGRNUltJkqQ8IVNFv4o/7//52Y8//nh2hYoVCMDbs3uv8yQrJCUlqbGxchZakqSbSOYu8uQpk/dqqsbixUv4589/fkHmpLSSJEk3DWtGmmSdXrGxRwAE+vbp4yNZKni7zDIrSZnIwfabQHJyshYXF+dP/frrWw/8+lsxp9MpKpQtPw/AoejoaE0IwZy+RknKTWRgvAns3LkzQFL5bPMn+t49u1mrRk1vv/4DvhNCsF+/frK1KEnSzSVTuYICz8x95gIA9u3b93Cw3KkMipL0F2SL8Sby7Y5vhaIoqFWz7hZN0wKQgVGS/pIMjDeRw4cP+QsWLISDhw4/6/f7ER0dLd9/SfoL8ouRz2Uua3rq9GmUKVkaXW7rHAIArVq1yqnLkqRcTQbGm8iFC+dRtXo13NqpLQAZGCVJunlZky8hjZs09jdr3nwLSWdwC6AcY5SkvyBbjDeRAmEFlPTLl88JIS4eP35cAJDrFyXpL8jAmM+Rf8S+0NCQgKabmtzpIkn/TAbGm4coUaKEcurk7z6500WS/pkMjDcHAcAXGhr2a5EiRcJJhhYpUoSy5ShJf00GxnxOCMH4+HhNCHFp//4fHmvUuGmj9HS0SE5O9m/cuFGmGpOkvyAD400gKioKADB4cLzj5OmTHDLkzjMAsHHjxhy8KknKvWRgvAnEx8f7AIiYmJhFuqaeDw0NbaOqKnbt2iXHGiXpL8jAeBMITrYIIcT5WpG1fyhcpNiDAJCcnBzI4UuTpFxJBsabREpKigJA1KhV+1GfN/3S888/r2deyiNJknRTClYN1D/4YMP3b775xlTgSklVSZKkm5O1PGffvn0Vly9fXjzzz6R/lpSUpKampuqpqam6LDMrSZIkSVL+53a7FdlSvDpJSRllZT/77LPbUlO3Td22fcfUHTt21AIyiozl7NVJkiTdYCQVkoJk+QkTJrJy5cqsW6ce58x+5hfrtpy+Ril7aDl9AZKUmwkhSFI/f+E8fvjhh3SH3a6kXbpks27L6euTsocMjJL076hpGnVd1w3DULwejz+nL0jKXnKMRJKughAQPp8PXo8XAQZkFzqfk4FRkq6SECIjT5EMi/meDIySdBVIgCCEUCAUmZQov5OBUZKuBgkyo9WoCfm1ye/kOyxJVyFAZjQbBSA0+bXJ7+Q7LElXIeAPJiJSBBRFfm3yO/kOS9JVCAQLKopM/5XyLxkYJelvTMn8P8EUbQRByDSW+Z0MjJJ0FYTVSiRkNe6bgAyMkvQ3pmT6t6ooEEIByYyJGClfk4FRkq6CUAQECCHzRtwUZGCUJEn6ExkYJelqCAEKkbH7JaevRcp2MjBK0lXJWOAtg+LNQQZGSboKDBCAyNgzLVfr5HsyMErSVcgIjME/lOkY8zsZGCXpKjC4eJEk/AHZZMzvZGCUpKvCK3/JrnT+JwOjJF0NAWQERyEnYG4CMjBK0lW4shNQRsWbggyMkvQ3pmTaFMhAAGAwLsrgmO/JwChJV0Fuj765yMAoSZL0JzIwStJ/IMcZbw4yMErSfyCEgJDFsPI9+Q5L0t+a8v9+IoSAImSTMb+TgVGSroYQGRUChYBQZV3p/E7LypORFNu2bdO2bduGqKgonD9/njExMb6ruW9KSooWEhIirPtGRUX5hBC5di6QpLpt2zYl0/X6hRC5fk+E9R4BwE8//RSIi4vLVRt/M18fgBz9HEwBkBD8tyIUa303xN+0GPPaZxgAkki1Qh78HFtSU1N16985du0khdvt1mJjY9Xo6GjN7XYrQggkJSWp+PshaQFAIfn/Wqdut1tBRqv1b++blJSkkjmfNpmkyPQ8/+m5itjYWDX43G64a3iPhNvt/sv3JyslJSWp0dHRWvC10az31Lpe/MvnAIASfA43jPWakKw8atQoCiH8oaGhnDFjxmGSCkkRGxv7r5+J4DG5Akkl+Hr/6+fY7XZrOfk5xh+fiSvvffB6/i3eiNwQMwQAGIYBkiXPX7w4ZvPmz0ft27dvzPnz5/vo+pWADnemL1/wzYEQArqu49KlS71//fXAmNTUr0eledLGkCxlGMb/e5ycEHwzBACYpgld10Gy6+nTZ8d88+23I8+ePzuGZBVN02C32/98v9wg83tU6vTps2N+/vnnMWfOnGib+f250TK/PpqmWa9r8RMnTozZuXv3qLS0i2NIFjYM40orLdOXOttlDoyjR4+mIoQ/NCSEU6dOPUzyygtnmiY0TcOxY8fu2Ldv/5jUr78eHbz2gple32z/5fNvMr/epmlC03Vc9nrbHj9xYsxXX3018sSJE2NI1tU0DZm/ezf6F1JmNpvtyr+tmAFc+SxrR48fH71nz577PT7PGJK1DcOAGhzquJ7rvqoPGEkhhOCJEydKzZo1q+YHH3zgr169ulqnTsPfHn30oV1ff729R3LyqmmffLKpSGhoWOGzZ85A0zT4fF4UKlxkX3RM9Ef3DR36vBDi+5SUFM3qXqekpNRM2fTpsN07v2975syZKpqmIz09HSEuJ06dPnWiSdOmxzt16fJodPPmq4UQtK7jWp/sf0VSTJkyRU9ISPDY7XasX7+++/ff75r+7rvvmH4/K9nsNly+fAkOuwNHjxw5a7OZR3t076bUalB/fkzz6NeEEL/HxsaqycnJ2d5dtV6bkydPll6YuLDG66te91evWVOtUr36r4+53btTU7f3XL36zWkpKR8XcTqchTzedJw6dcpfqVKl/R06dFjWsWPHtUWLFv1+ypQpSEhIyLLuiHVdGzZsiFrw3ILCP/32U6B79+7KqFGjdhYsWPAAybANGzY0XbtmXeyRY0da/vTTT84yZcoU93q8cDjsOHDwwKG69epdrFmj1sZmrZrOj6od9W3w1ALZXK+PpCKECJCsfP+YMfvmzXs24HI4lXEPPXh08qOTi5N0vrvu3d5fbvtq/Lsb3kNYaFgVBQp8fi8cDgfOnTt7JKpevaN1G9Z/9K5Bd73j8/mQlJSk5uTwBckaLy5aVObwr79O2/rFF2FpaZ6KoaEh4tLFi7A7HDh+/PcL4eFhR2vWqPFT+SoV5gwfMnyXEOI3ZLTesr2bGmzpie+++67wkUNHXlY1tfKhQ0c+K1mq+NK2bdt+eujQqTIrXl10x4/7fxjw+dYv1HLlylX0+XwwTQPHjh0/X7p06SM9b+/xS2yv2F5CiAvZ+v0jqQHAkSMHh/fo0ZOhoWGsWrUaX122fP3MmTPn3nrrrTRN09pOehlAOoBLADyKIlisWDHeP2bMxdTvvosJns9YsmTZwkaNG58vXLiwdb90AJ7gn0uGrlHTNDZv2ZLTn3jiVVVTgX9u/meb73bv7jJ27INb6tevT4fDSUVRGbzOdAD+4HOmoipUVZW1atfiHXfesWvz5s01FUUBAOXvxqWyivUenThxbOSwofcxLDSUkZE1uOKVlesWL106r0OHjtR13XqtLwG4pKiKHwDbtmvL9HTWA7K+lWv9ln/11dc2lS9fniEhIYzr3Yck+27btq3skCH3bb7llltot9szJTyEDxmv6yVFEdR0ncWKFeMtzW65OGfu3CVWay27W+SZW4z3jx5NVVH8ISEhdLsn/0Ry5JgHxn5fp04dBn9ZW58JH6zXVxHUdZ2RkZGcNn36JyRjMp/3Rgg+liCprV67tsPw4SPP1ahZgzabaV23D3+83l4AAV3TaLfZWLNWLd49+J6DW7ZsfdzQDbij/xgCyS7W52XTZ5/1bteuPXVdZ8mSJfnee++9vmTJMndMTOsjZcuWzfyaX8r0J6CqKosUKcJbb+v4/aZPPx0RPGf2vN5/BMYjd7fr0M4L4FJISIh3zNixgdJlyhBAmmmajIyMZLt27dm6TRtGNYhiWIEwAvAauu4BwL79+18k2W7uvOdWVa1ajcEvpqdgwYJs3qw527Rpw5Yto1mrVk1qmkrTNDxCiLRixYpz4oRJK0kaN6J7Ghz3UkgWTEp646m6daM8LqfLCvreIkUKs1GjRmzbth1bt2lzuWPHjqxRsybtdhsBeFVVTVcVhTGtY7hyZXICAMTHx+vZ+aGy3qOjR48O7nV7rBfApUIFC3rnzJ4TqFGzJgGkm4bBUqVKsWbNmqxYoQIdTgdDQlyBMaPHvAQA2TEWZn3QX1q4cI3L5fICuNS8eXPvsWMnPo6Jae1RVY0A0gB4S5QswWbNm/PWW2+93Llzl7S2bduyQoUK1HWdQhHphm4ESpcuzR49e34YDI4iOz8P/2+MESKgaxqfnjU78NCD46mqKgGkO5wOVq5ShW3btmNMTEx6ly5dWK1qNYaGhlDVVI+iKJ6Q0FA+/viTF0jWQ3DsPLuu+0/Xr5BUXl64+J2oqAYMTk6kAfBGREQwqkEDxsTEpHXp2uVy6zatvfXr12exYkUphKCu62maprJR40acOnXqs8HT/tP43nWzPi/vfPhh91uaN/cB8LicrvQhQ4a9W6dOXRqGQQDpERERrFuvHjt36cIuXbqwTt06DDayfDabzadpGm/teBu/+uqrESTVbHm9r3zpjh8d3PG2jhRCeGw2GxUto+XUsGEjPjx+wr7PPvts0a+//jr1l18ODNy7d++imU/PfLt7t240DIMOh8MPgA8++CBr1a5NAF6n08nB9w7hggWJrxw+dHjRsWPHmv/w88+3frPjm0XTpk07Vq1aNbpcrgCESGvUqDE/fP/DBwAgMTExWwfG5s6dawJAcvKql1u2jCYAr6ap3iKFi3D4sOF8YcGLb/yw/4dFBw8eiSMZcfDg4ce2bN2yaPYzs7cPGNCPToeDhmF4BIS3Xt16XLxw8bTgqbPzS6wBwIHDB+J73X47hRCesLAw2jKCdXqJ4iXYu3effcuWLFu48eOPl61Zs2bR6NGjv5j11NNekjWTkpKy5cOTKTCuCwsLI4Tw1q1XlwMH3UEAFEIEqlSuwgfGPMBVq1Yt371790SSESSL/PTTT/NWr16zaNy4cb9GRUVRZPRA0hwOB7t06bKBpC343LPli5o5MI4cNYoAAiEhLlaqWpGKKnwAfB3ad2BCwtTPt2zZsuiXX3558MTFEyWPHj26eMOGdxfde2/8OzVr1qBhGD7TZksrVLgIn5r51EpVU/9nvCybrt2a3NJnPvXU2rJlyxGAR1EUX7FixfnAA+O4aNGi9V988cVzFy5cKE4y4vjx41W+/PLLxQnTpi3s0aPHxWLFi1FVlXQA6WXKlOGYMWOeM00zW6/dOveGDz/s0aJlSwohvC5XCAsWLEQA3tDQUA6/bzjnz3/+na1btyw6dOjA4kOHDi369NNPFyUkJCzr2qUbVUUEQkJCvAA8o0aNJsl6mSZPs471pTt+8vjg9h06EIAn2PXxNG3cNLDmjTUjSBb88/1sNhvOnTrVsnGjxr8ahkHDNPzIaP56nU4nR48es41k3b95zDLPPvPsjFKlSgVCQ0O9QsA//L6Rx0gWQTa2FKzzLlz4SufyFSqeBXDZ5XKxdKnSnPP0Mx+RbBLsHv/VNYeQHDR39uwdpUqVpGnafAC8zZo15+dffJFAMttmVq336NcDB+K79egRfI8cFAL+EsVLcPGiJT+QLPqn+zhIVgv+O1uCy5XA+NLCdSGuEAohvEJkfAYABBo3apK+etVbq0jW+YfnVnTTpk/H3Tv4Xuq6Tk3TPAXCCnDa1GnvkQxDRqsoy6/f+iyQrDx8xHACCNgdNkJFwDRN9o7tfXnPzj2xJO1/dX+bzYaPPvjghaZNmlBVVR+E8Ldt047Hjh2rK4TIti6eFQRIhqxbt25NhfLlaTNNj6IogYYNGjHp9eTPSLb60+Tmn89RafrU6S82adzEeq/Sa0TWZOILL40BMnpA2XHt1udl46cbezS5pSkBeG2mjQA8xYuX4Pz5zx8h2dI0zb+8v+eyZ+hD4x6iqqgBwzR9hQoWDqx6Y/Xa4M1Z+3pbX7qTp08O7tixY8ZvHlXxVShfno9NfewB67jExEQ9JSVFS0pKUlNTU/XIyEgDANatWzekatWqPlVVPa4Ql880TX/3Lj1+s4JpfFS8npqaqrvdbsXtditJSUkGADidTowcPfJXXdcIgNHR0Txw4ECp4AuY5R8qkioyxmNaDbtvRLqiKDR03VuqVKm0xx57YlimQ5XU1FTdWgKTkpKiZW7FklReX7HijerVq9Fmt3kB+IcOu4/ZGYT+CIy/xnft3p0APA6Hw28ahu/RiZN2kCwBAElJScafr9ftzr4xL+uD/vzzz68LCXFRUYRX17SAIhR/65g2gU83ft4x87EpKSkagsst/nydBw4c6NS+fYef7HZ7QFGUi40aNeamjzcNEUIgeL+svvYrgXHI0CEZLUZXCIUi/C1btjy7a9++9sFDRWJiop6URJWkSE1N1YPr63RN0zB9+rRXCxUqSJvNvFy2bDn//PkvPB88/99Hpuu77ozPwq8H7+jZM5YA0lRV8dx2Wydu27Z9UqZDRfD1FdbwUWJiom695jabDZ988snCVq2iqSiKB4Cvbt2oX3755XBkdi2js679w0839mhqBUabzV8woiBffPHlgyQrBA9VExMTdeu1TkxM/L/2zjw+yuL+45+ZeZ5ns8kmIYFwk3DI0QQViAUEDEEUIocFYYNnRaCAFqWo9Wp1syq1qK1WLZCoeBVrAx61FC80CacHtOLPICScAUIIgpCE7PEc398feyRekE1ZQpt5v14hCXmefWZnZz7zne985ztqTk6ODQD27Nw3d/BPB3sURfHHxtqtO351R3lw8IqOMH5T882siRMnEgCvoihmztgrthFRyuzZs9UfsoQajVzi0tGX7lUUhTRV05PaJNPjjz5xOwA4nc4fbBwul0srLCwU99577y9Su6USAL1NmzbWsIHDOgcvOeOdORhfx+/9zW9u7tqtGwkhTrZv3958+OHfvQ4AOTk5tlNZfETEXEWBmDy7PRZud94/k5KTiHPu6dC+g7Hs2edeBaIz2oaFcd++2T+bPCm8EDB0yFB68803LwG+74IgIhbthYBQQ3/iyT+tcjgcpGmazjk3evXsZS1btmwsEGgDpypHcMDUAGDHjvJbhwwZYimKojPOzTlzb6mIorUbFsZZs2cRAEvTNH+P7j2oYGnBY8FrYn7s+V9++aUGgFVVH5z/s59NJM64Ny4uzspz5X1MRClOpzNqMbp2ux0PPrhwJ+fC1DTNn56eTm+++ff7ASA9PV0jovCzQ+2gcVmC7VwoQuCll15a1rFTJ1IUxZvSvj0988yS94Lv/cwPRkUNFuPw4cMIgE9RFHPwTwfvIW/AsGgc1P1dbrzxxhgAGD9x4sq2bZOJMVb/8xtuNA3DmBl8r2euzKEXq6mrmTXpqkkEoL5tclua/vPpfwGAzMzMU3b02NhYuN3uvQiuOA6+aAg999xzaaFR6ofuCVkAX5R+MeOiiy4iAJ7k5GR674MPngWi4mdkAKCqKiZMvHJncNXLvP76nxMRXYAI4tAaWT3Dpkyd4hFC6Iwxfe6cufVENBhRcL6HfYz7982ePGVyuEFNm3bNfiLqV1hY2CJB56HO8/gTT6yKi4sjVVV9QgjrmmnXvMM5j2jBx+VyxQDAzTff/JeU9ikkhKi/6KLBZnl5+Z0hC/MMlz0sjDNnzSQAlqIoxriccZ7jR49fHVygO235iajNlKlT9sfEBBbnfv+7RyjkQjrTA1NRUZHCGMOhw4fmjc3JMRhjPiGEOX/+gr1E1GHkyJExLpdLy8zMVENfjW5njf8/aLTYASArK/uT+Ph4y6bZ9MGDL95KRJ0AnHFhD32G6zaum3xJVhYB8MTFxtGcWb94Bzi9lT179mzV5XLxZ5c9u6J7jzQCUH/Z6Mvo6NGjs4CmC2NkH4oFCBZoB7H2GIzMusRORCwzM/OUtwkhkJycHP69e480zLxhZiJjjPLy8n7wnuzsbABA587dmC0Q5EmMMXBCu4jK3ESKiooEAOyq2DWvuvpwLzB4U1La8/Sf9HsZQGlwB0mT4rhGjRplOJ1OzhjbOGTI0I+SkpIVzpi59Ysv7KtWrfIhmvF3goNzAQBmfHw8r6+vK2KMbV+0aBE/k/GJkWLqOgBA13Uz/ScZbMTQkS9alsWTkpIiaYN+l8vFx44d+1Cs3V6jKIpWffgQf+app1TGGC1evDhqwm8FTgYkzaaJTp06HW3Xod1rbrfbYoydNkZOVdXj7Tt0MAwjsDu2+sgRCwG/3RmnuLiYExHeWPmG2Ld3ryAiIz29P58xY9ZfGWOHS0pKvG63279lyxY99EVEGhH1dzjiqPH/r1ixws8Y8xCR49d3LTiamJDIfH6fLgS74P33PxwOwMzLy4uKz1wIDcEQPQghMHrMGJvLRby4uPiUbTgzMxNut9vK6JcBVQloqO73Qfd6I3p+s0dYYgwxMTaLMUazZ88+9bVE31ICJhigoUlBlwJA48UOilKDKisrYwCw5v01/Y6fOA6yyOzcuTOGDR9RxhgzN2/erLrd7tO9zLdwuVyca2xhhw7tx3399RFWdaiSvPXemQBuy83NjZo4hkImNZsN6enp9rfffpvNmTMHW7ZsidYjf5Ti4HfDskCBNNiabvj3XD/jms9/uWAuOnXq1OTgW7fbTQCIiHa++NLLMW///S1xuLoalkWTiWgJY6yGorQJgHEe2CcNhm6pXbiu6wpjrEl5AHRdZ/MX/IoF3z8Y2Km2PzYbCmxIMIjIsfCRhc7KykpomqodP34MBfl/njRq1KikGC2WMQbLMHVYJrjf77fmzrllwPnnZwydMP5nq6sOVlZwTeGMMYtbFhS7zX7nHXcOPHbiWKLH6wVjTCkrK6NFixb5AKC4uPhMvw0AATEUgQEeMfYYtGmTSG43s1wuFy8pKTnt/YwxMB6oYi4UIMLEH80XRgJ0MwIDpHFu+AiabaCCvmUIRMUnExKNDes2eOpqawGApaV2R+/eve3NCc52Op3Izc21Kioq1E3rP0ZpaSlO1NSwupMnrzj93c1HNAozUwNbFJs0eEWLbAAlwRIFhUHohnEwMTFxBwDhdrsj3ZXAASidOnf4SAiR4/P5rNi42J8CiAdwHFFqH4IHkkgwxiCEAkSwC8Rut9Mv5s5p+I8ohki73W4rLy8vztSN4TU1NYiLcygHDx7AkqVL+sUnJPYL7ZCwiGBZFoiADZvWwTRNI8ZmG6dptkaiQrAswpr3P4BhGmBgFhFB1/1U883X0XsTQULp3YQQ+LFIkB+9VzT0AyEin0hELIzU3Flgo8YQmo43Bc55uFLORpJQj/ckt6xAX01MjEdCgsOiZhz44XQ6AQDdunWjrl26AABM08SxY1+fiOpmNt7QoM6lTNONcxh26thZ21leLpox4FBmZqbCGPMBWJKYmJhTU1NjHj12LLRzI2oEOicLKnzkFSsYC+/3Dro6oolVc+KEF0AMAGiaDTExNuhBd0ZoBseCmYLiHHEQQlEo4C4A4zww6yCAcyA+IR6mZcIwTG7oOgeAb44dEwDQFOutOQghAlZ6oEBBoWs6ihCBjEgIiGSkwhq5MAZPG2eBHBZNvk9wEd5tyXnTG5aqqlCUQDG5AISIbm9PTm5nqWrQN+Hzw/AbzdrOt2LFitCPvN7jARBIlOCIT1CiucP3Wx8/hX1jLU6oDhlj+PrI176gby6i1h6cJhtEZHe7H7z34YcfAhEpbdu2Y5G+VpPIQzjvWNgCsQDejIFSURrWOCJo/s0mLi5OURQFuu5Hzpgcuvb6aytqTtZC4QpMywJggTMOoQgIRYXggZkZFwKcMVig8OBtGQYMw4Bu6PD7dUOzaQrTjbobZ86Ey+VCpC6mSBGMNys5cOgWIUQ4sURTiUgYTZgNfTp80G7TCFl7BAs8AtO28ZtiXASGsCgQWkC6eNgIR0nxOuyv2E8HDx3E/oP7TzbHYgQCHXn1B6vrysrKAQAOh4N69OjeJL9Uc2ksg2QRTPPcSLeoqCqEECAiI6ldUi/aTgMZY59TMFFDU14jKK4UGxvnuWnGTQMMw4A9JoZVV1V/gMA0WjRlMaTp5CGkjCGLg0CNe0GT4Yw3zHbOgjJ26NTJ1DRVsUxCTW1t/bRp0y602+0nvnchNW0OyBgH5wyWZYExwOfzAwDcbndU2nOg3VLo4c18lebXc0QqY5mBzgYEGghF2Ol4eArS9AIHTOrgFAQ8avk9KisrCQAGDBiwkcjyCM7VHWU7sHnzvwYTUfzu3bstRFDwFStWgDFGX2z98pLdO3eBMUYdOnRguq7fDwBOpzM6vcNqsOq/u+jVkihcCQmDrnDRedOnn6a7XC5WUFDQ5KE8GG/HDhyuGv7Jx58aXHCjXUo76Lp/LWOs1uV0nVGrMa/Rz+EPq7kVyig8U2JR2jLPGKNgeNTRupM1v09JSSGf3+et/ro6dsP6Tfd6vV6WkZGher1ehL98PvhO/8W9Xg/q6+vh9XqFx+NlUZ+JmCaCzRjNMUyo0b+WRUCkWhXR1ZaOkB+CLAqa5E3DJDPsn4zUiglNw4gsEEXHAgotAgy84PxX+vTpBdOytOrqI/js008nAVByc3Mtl8vV5DRt1dXVjIiSS/+v9K6vvz5iKYrCO3bsfCQrK6sCgTjGqGiWbpowjMDnYlkWLPPckEZVEwAsKIrgW7dupQdd7k5ut9t69dVXm1zAp4JhOUufXpJbVXXIIYTQbTEx3pm/mPk1EbHsW7Kj1luJCCAK++Uivh8UNnyiOVxlZGRwxpg1/oqJVrduqYyIaH9FBVv+6qv9hBDUs2fPiJK4BoXWKiwsPO/48eM/RcCXe1YaVeMB3rIifCQ1FNOyzIgd0BEJo2lasEKFBcGMQMnJtMJvjiIdbUK+DsuCGclKeIRPcTqdwufzq+k/6f9aUps2iImx+f/6t9eshx5aOA8AHTp0SJwuIJeI2PTp020lJSXGY4/9Ydb6tes6er1eb0JCojpw4KCN8fHxpU6nU41WCnZd12EYASe7aVkRW/XRQhGB/LJCKKKm5oTp8dQ/euLEifElJSXG6tWrf3jjayMKCwvF/PnzfZs3f5n6wgvPj66srLQM3bD36tnbM2bMmKWMsSYfo9FU8hrZjKZlwQq19+bIgtkQmBFNYSwtLTUAICMj441BAwd5Adh8Xq+xefNnP/vss3//fsWKFf45c+ac1oUW3Mutud1uo7h4/SXPLF7877vuvvvT5cuXz9m3b1/naGcH8pv+sH/cNE2EFkSbim4asMzG90cW5RfZVLrxL4yBRTAlDjSqQIMwIlX/kKVJ0R2sCgsLiTGmTxgz4fGM/ufXer0+nKytsd57790HS0rWuQsKCnTGmBVK+R7cRsUpkC6eO51OwRjDSy+95H355Zdz/vKXV+7ff6DCJCLtwgsG0IwZN70DAE6n84yrVXEoYrBxBwadOwvTjIExwDAMqKrKPvnkY3bDDTf8lohs48aN84V2LDSu01C9ulwuLTc31ySi1OWvvbymqupQBufMSEhIxKRJk973+/082rt6rIYYxGa5rkyY4deI5jTU7XZbwc0IX2ZdkvVKl85dGOfC2rz5U/M3v7l7enlF+XkFBQU6ACXUjl2u79W3QkTc7Xb7T/r9Q59f9uw/1xYXOwry830Lf/fI0u3by6/Pzc01o5GmLtSOTdNsNCOliLu9qZuBBSQAlmlGOpOOdFU6dERLoG1EEh/07QXsyBpGuCFZ0U0hzBiznE6nGJo1dNvzzz//1t69e244dKjKv+njjXqe64EHXnvtNW3atGnLGGPlAH5wNY6IHEuXPjvtj088sfSrr7YpIPj69f2J7erc3CVpad3y8/Pz1dzc3KgEqQMIfDzBuubNCHOIFqE4RtM0YZom13XdV1RUNHTCuAlvbd++a2G/fr3WAz9cpwD8RNTJ7XZ/uOy5gvNMU9dN01Ru/Pl0/9y5sx8JZnfnZ3x1NK/RzxSuVChK5HVKFjVyQ0XXP+d2u8npdGrOac7Zv5o//6d/Xrx4gGaz6R999FGHu+bftXnTpk2vZGdn39pQX258p+osIlJXr159tfOqq55b88H79vj4eN3QDduI4cOrxowZ/azL5eJ5eXnWGU/AXBz4ZpgNgxHnHIgwTI8Q3lAAi6yI3XcRCaMKILSpgDHgVGmLTgWPaMg1w2+QLBbhvZFTWFhoFRQUqDNmzJhZXlZmf+HFF6cerj7s37Bxg3Go6tA9n3zy8S9efe21v57fu/fi/oMGMQR8LqKsrIzWrt0w+pfz5t380Ycfpu/atQumZRopbVNs99x9984bb7rxkTZt24jS0tKozG2zg985Gj4jzhk0Napp/yIiNMPo168fa9e2rW39hg3m2nVrcxYsuDXnj3/8w6phw4b/dsiQIV40ZGq39lTsSdu4ftOdg4cM6VtWVpbq8Xi8fp/PdsUV46xrr7v+KsbY1uDK9pmv17w8hBQjHC5CFI6PiwiisBsKzYxyiORphYWFBmOMPfrEY/cwIf7x1FNPqapQjHffeTdx+44d86655uoBV06avPO8nj0XnX/++eH7tm/frh2sqnpo7i23pH72yScDt36+Faqm+urr621TrppSnZ+/NAvBQPqoHDOSnQ243VCECNcTB4eiRLgcQg0Lxc2ZZEbUa4iDVFUzGYOpKKqpKooFAKfeKR1A1RRTEYppmIYZDNxsUnFNE2QFHAymPdYGVVWiOtwGrQ+DBX6Y5oh3vP73t/8x6fN//xs7dmz379y5s22PVavmde7SZV6fvn2R4IhHXV0d9u7di527dqHy4EF4PB4vA9S+ffop9z9wf+m11107njG2n4h4bm5uVMpfHJZGIiGEqSiqqWk2U9G0cyKQkYhCFgC322P23HXn3YsPH779sfKdO6133lltbd36+YSePd+Y0LdfOrp3T4UiFOw/cAClpV9iz+69OHz4EHx+v57UJinmumuus26aMX3C0KEXvRtMmhCVkJE8NByfKgQ3FVW1bDYbMRZ5MLkQwrRpNtPn8xE4jzDYLXKCZ9UIxth7RJTTJjFhxZNP/im5puaEsX37V9b+iooRGzZsHJHWvfv0rl27ISEhHj6vFzvKylBVVYUD+/ejrq7OB0B0TO5omzp1auXMWTNHM8bKCwsLm7NjqWkEtxgahkFccFNVVVOzqaYiRETtmDFYdnsMcc5DWcsjqu/I4hhNwwZAqKrqUBUFRMwBADhNEgnGGBh4oqqpwvJZInhyWtPmI5au8cB80HHiRK3BOf/BpKBnkqA4gjFGdrt98sqVKx8tyM+fsfWLL9pWVVWhvHynr7x8Jy8pLvluZVN8fLytW7fUmLFjxmDE8BFzr73u2hcYY/5I4vX+E7y6biNiQtVUh2VZ8Pv8cdF+ZlMJ2lx627btO06cNHHtF1/8O6ds167Va9asUaqrq6myslJfv35DaEoQOnyJAFBimwTboEGZ6uWjL3/vvnvueyrGEfNufn6+OmrUqOi5JRrgqhYjNFUVpmXBrxttIn0BXfclCiGEZVksMG5GISD9OzDGzGC7+4iIuiclt31iw/p1M99/fw08nnqUl5d7y8vLBb4vGhbnXE1OTrZdcP4FcE51/vWWebcsZIxtb3yYXTTxer0aAloTR0QwTDM2kvtNy3KcPFnPLMtiPr+fk0kRTW+bKowEAKqqVPTr23ftN98c93dPS9NSUlK2AA0xgD+Gz+dDh44dP8q+9NIOZJnWBRdewAHUNeWZhsX2Dxg4YK3fMPjloy8bERvr2AEAffr0ifaIS4wxeDweNn78+LuI6M/5+flzvvpq+w379u3tWl5eDl3XYZomhBCItcciNS0VSUlJm6+4YtyeyZNz3TYbK50+Y3pox0ZURTE7WF8JcXH7Bg0auLauttbfPqW91qNXr38BQKdOnVo0bscwzVCgLiUkxNsBXPBbl+u5mpqa/i+89NIdu8rLp+7avTtx186d8Hg8qKurQ5s2bURSchJ69uiJ1NTUdVMnTXVlXZpV9ODDD8LpdIo5c+ZEVRQbrUqfPK9Xz7VDL76YVEVhqd17HI3kdQzDQI8evYqGDR/WvnPHLpkXXzxMAVAb7VyYQMByLCwsFIyxWpvNNqu2tvaVF1544cEPPvig68n6kz337d0HXffDMExwzhETE4O0tDR0T+uBHj17rrryyqvu79u3x+e/vPWXoVMToyqKGRkZBADtUpIOXXjhgLWCCz05OVndvXv3vcFLTtmPKisryUXEE/61ZUvutGnDv/nmG1tq167VQrUdDF7SpH5wzixano6YmBh4PJ4pAN44m0eoAoEccaFRkoi6HD1+/OJXXnzRqqqqYh6PB4kOB3r27o2sUVno/5P+r3uCWwCDDmo62+U9l3C5XIrb7TaeXvzMqnvvund8XV2tLycnh73zzjvTcnNz/xE62pKIMioOVqQve3aZ6ff722aNHPnAls2b7++X0a/20pGX+pOTk0Pp6VlhYSFvySNI/xOIaBAC/rktZ2sWEXzut3yCRJS8e9/uUStWvEGHD1cyv8cDu+ZAao8uNH78laxnz57VjLF1QOCQtPT0dGrJtHWREKpXIkoH0AZAJWNsbzQfyIJL9CKYfbjJI14oI3Cje5scLB18ZouKeKNynA4Wad2cSb77GbVEctrGhBLV/unpp1fFxsYSAIpzxG0K/lmEwpy+e5/d/j2PSUTt5kzCGPtW+21ODF/oMwn93hLvI5Spu6lhNi3Zfv7Tdvzd/hdpff/XWIxAIPtutE35JpSBFxcX81AeuuLi4nBS3ezsbIwaNeqs7Qz4byBkMT75p6dX3Xfv3ePr6+vhcDg+rquruxgBoQhZjOF63bZtG61YscIcOXKkkp2dHarXFv3czxQhUW1pi5eIWHFxsfixdpydnU1RWek/iwTFMZAP6SxZ5hJJk2g48+XJVfYGi3Fj8M/nRpClRPIdWnSaJWk9mA07n8im2VSiyFYJJZKziRRGyVkjmKreN2LEiEEAJgMwm3o4kURyNpHCKDkrNHZm80BCTimIknMWKYySswJZVjjhaDCdlFygkpyzSGGUnCUovN84mD9XCqPknEUKo+SsYJpmOLW/pqkMgFx8kZyzSGGURJVQnJzP5wNAYIzxEydO1AE4BET1vESJpNlIYZScFY6fOA7LNME51zZs2LCVMfY+gOikC5NI/kOkMEqiDhGxb44dZ6GMzJqmKS2xJU4iaSpSGCVRhzFGBysrDSAYtsPQqhNrSM59pDBKogkrad+eiMhRV1vbhoiIcQGbdtqzrySSFkUKoyRqFBUVCQTSio1IS0vL8ng8fkURsNukMErObaQwSqJO9dFqq7r6cPgADkd8QssWSCI5DVIYJVEjFKqzafNnem1dLWOMAQSkpKS0bMEkktMghVESNYqLi8EYwxefb+1wqKoamqrCIkLHjp1kbjzJOY0URknUKCkpMTVNQ/euqQ9WHjgAVbNxAjBo0EXxLV02ieRUSGGURBWv18u3lZbCNAwwRlC4gMMRV9zS5ZJIJJKWggHA8EuGbxNCkKqq/m5dU81+Pfr1AcLnoEgk5xzSYpREBSISAGh3RcXYmuO1XYjI1HWdDRo0iL9btKYdADidzhYupUTyw0hhlESFgoICTkTsH2++OcAw9ATGuaGqKhcK/yItrcs+ALy0tFTufpFIJK2D4D5oRkT2++67r4JzTrGxdl9KSgrdcsu8FwHA6XTKtGOScxZpMUrOOHl5eYyIACB146ZNnYmIiJhqWZYv48LzC4iIpaen/08chyqRSCRNIn/zZhUA/rFq1ZLU1FRLUxU/55zGXTGBiMgRvExm15Gcs0iLUXJGISK2ZtEii4ji3nr77YwjR46AcwEhBPXu3XsdAoLIgxalRCKR/O/jcrk4EbGKAweuHj36MmKMmYwxf9++fentt/95e/Aa6V+UnNNIi1FyRtm2bRtjjNFbb7x124YN6ynWbreIiGekZ9RNnDjuHQQsRulflEgkrQMi4gAEEfXIyhq1Rwhh2mw2f3JSMi36/aLFgAzqlkgkrYzCwkIBAEuXFjyWlppGms3mY4wbwy4edmzb55/3cTqdInSNRCKR/M8TOsOFiNpPnjKlDoBpt8fqsXGxNH/+gnwAGDlypNKihZRIJJKzSX5+vkpE/PnnX/hD5y5dTE3V/Iwxa9jw4Z5jx+rTXC4Xd7lc0qct+a9ANlTJfwwRscrKShNA+7+/9dYvD1dVccYZEhISrcsvG/NCUpL9wKFDh4Tb7ZZ5GCUSSetg9uzZKgC4XK4n27ZtSw6HQwdAU6ZMJSLqGvybHIQlEknrgIi40+kUu3fvHjl06MVfa5pqCC58HVI6+Ja/svwBIQTIRVIUJRJJq0IAwMMLF+6IczgoLi7O73DE0T133vN5479LJBJJq6CQSCiKgpKS9X/q3r2HrqiqD4z5c3LGHjx8+PAAl8ulyCm0RCJpNYQEj4jSrrvu58SFoNhYu9W/f396/JHHBza+RiKRSP7nISJWWFgoiCjhz/kFexRFNYQifJqqGbfPv/1FIlJCCzISiUTSKigqKlIAYM2aonkXDhxIjDEfALp57i1HVE3qoUQiaWUEp8eM6Ej8+AkTdoLBzxj0qVOdnqPVJ8YRkdz2J5FIWg/BbX+ciGIWLLh9vSPeQaqqmkOHDNVXvvnm2OBl0q8okUhaD0VFRQoRsZWvv7WxZ8/zCIC3e/ceNX985NHLgMC2wBYuokQikZw9XC5XwK9YXDxx+IhLCMDJzMxMevzRP94DALfeequtRQsokUgkZ5Ogz5DpRJNumjFLB3Cy13nn0avL//YREbVxuVxKKLuORCKR/M8TFDxFURT85gFXmVCE2S01lZYuWfohEcU2ukYikUhaDUzTNDz88MN/TUhI0Dt36kzuB9wlRGQHwlm7JRKJpFXAgjkW1cKVr7/aq9d5lJCQQHfdflcxEamAFEWJRNLKKCws1ADg/0q/+kPWyGxSVJVmzpj5IRHFAGByu59EImlVhHa2lJWVDcwaObISAN1www0hn6IURYlE0roI7VohoguunzH9UFxcHN144/TioKUoE0NIJJLWRdBnyIlogPvBh6vbtWtHCxbc/mHIpyhFUSKRtDqcTqfGOccdv/71yj59+tBdd/z6PTl9lkgkrRIiYunp6RoA3Hbbbff3759BD/z2t2ukKEokklbLyJFQAOB3v//dQ2NyxtIzTz/zIRFpgAzJkUgkrZDMzEyVMY4XX37x4aHDh9KSPy9ZHlpokaIokUhaFYyxcDac5X9bnnf5FZdTamrqpaE/y21+EomkNSIAYOXKwoVXTp5AXXt3zwICCzBSFCUSSauDiLgQAq+/vuLRW2+bR0OGZF4OBKbVLV02iUQiOeuEAriPHz9+9YrXV9JNN910GSBFUSKRSPDVV1/FE9GFQEMSWolEIpFA7maRSCSSbyHDcSQSiUQikUgkEolEIpFIJBKJRCKRSCQSiUQikUgkEolEIpFIJBKJRCKRnNP8P8x7J0ACzPBGAAAAAElFTkSuQmCC';
+const knLogoImg = new Image();
+knLogoImg.src = knLogoDataUri;
+
+let knApplyBrandFilter = true;
+
+function applyMorphenFilter(ctx, canvas) {
+  if (!knApplyBrandFilter) return;
+  try {
+    // 1) color grade — softer contrast, slightly desaturated, gentle brightness lift
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = canvas.width; tempCanvas.height = canvas.height;
+    const tempCtx = tempCanvas.getContext('2d');
+    tempCtx.filter = 'brightness(1.05) contrast(0.92) saturate(0.85)';
+    tempCtx.drawImage(canvas, 0, 0);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(tempCanvas, 0, 0);
+  } catch (e) { /* ctx.filter unsupported — skip color grade, continue with the rest */ }
+
+  // 2) warm tint overlay (temperature + tint)
+  ctx.save();
+  ctx.globalCompositeOperation = 'overlay';
+  ctx.fillStyle = 'rgba(255,230,200,0.10)';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.restore();
+
+  // 3) vignette
+  const grad = ctx.createRadialGradient(canvas.width/2, canvas.height/2, canvas.width*0.35, canvas.width/2, canvas.height/2, canvas.width*0.75);
+  grad.addColorStop(0, 'rgba(0,0,0,0)');
+  grad.addColorStop(1, 'rgba(30,25,20,0.18)');
+  ctx.save();
+  ctx.globalCompositeOperation = 'multiply';
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.restore();
+
+  // 4) frame border (brand cream)
+  const borderWidth = Math.max(2, Math.round(canvas.width * 0.012));
+  ctx.save();
+  ctx.strokeStyle = '#F5F4F0';
+  ctx.lineWidth = borderWidth * 2;
+  ctx.strokeRect(0, 0, canvas.width, canvas.height);
+  ctx.restore();
+
+  // 5) Morphen logo watermark, bottom-right
+  ctx.save();
+  if (knLogoImg.complete && knLogoImg.naturalWidth > 0) {
+    const logoH = canvas.height * 0.11;
+    const logoW = logoH * (knLogoImg.naturalWidth / knLogoImg.naturalHeight);
+    ctx.globalAlpha = 0.35;
+    ctx.drawImage(knLogoImg, canvas.width - logoW - canvas.width * 0.025, canvas.height - logoH - canvas.height * 0.02, logoW, logoH);
+  } else {
+    ctx.globalAlpha = 0.22;
+    ctx.font = Math.round(canvas.width * 0.06) + 'px sans-serif';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText('🦋', canvas.width - canvas.width * 0.03, canvas.height - canvas.height * 0.03);
+  }
+  ctx.restore();
+}
+
+function knFinishExport(canvas) {
+  const link = document.createElement('a');
+  link.download = 'morphen_' + knCurrentView + '_' + Date.now() + '.png';
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+
+function knBuildCanvasForView(viewKey) {
+  return new Promise((resolve, reject) => {
+    if (!knMockups[viewKey]) { resolve(null); return; }
+    const canvas = document.createElement('canvas');
+    const scale = knExportScale;
+    canvas.width = 420 * scale;
+    canvas.height = 520 * scale;
+    const ctx = canvas.getContext('2d');
+
+    const bgImg = new Image();
+    bgImg.onload = () => {
+      knDrawBackgroundContain(ctx, bgImg, canvas.width, canvas.height);
+      const viewLayers = knLayers[viewKey] || [];
+      let loaded = 0;
+      if (viewLayers.length === 0) { applyMorphenFilter(ctx, canvas); resolve(canvas); return; }
+      viewLayers.forEach(layer => {
+        const img = new Image();
+        img.onload = () => {
+          knDrawLayerToCanvas(ctx, img, layer, scale);
+          loaded++;
+          if (loaded === viewLayers.length) { applyMorphenFilter(ctx, canvas); resolve(canvas); }
+        };
+        img.onerror = () => { loaded++; if (loaded === viewLayers.length) { applyMorphenFilter(ctx, canvas); resolve(canvas); } };
+        img.src = layer.src;
+      });
+    };
+    bgImg.onerror = () => reject(new Error('Mockup görseli yüklenemedi'));
+    bgImg.src = knMockups[viewKey];
+  });
+}
+
+function knBuildCanvas(callback) {
+  knBuildCanvasForView(knCurrentView).then(canvas => {
+    if (!canvas) { alert('Önce bu görünüm için bir mockup fotoğrafı yükle.'); return; }
+    callback(canvas);
+  });
+}
+
+async function knUploadCanvasToCloudinary(canvas) {
+  const dataUrl = canvas.toDataURL('image/png');
+  const blob = knDataUrlToBlob(dataUrl);
+  const formData = new FormData();
+  formData.append('file', blob, 'morphen_pano.png');
+  formData.append('upload_preset', 'morphen_unsigned');
+  formData.append('cloud_name', 'dg1qre4mv');
+  const res = await fetch('https://api.cloudinary.com/v1_1/dg1qre4mv/image/upload', { method: 'POST', body: formData });
+  const data = await res.json();
+  if (data.secure_url) return data.secure_url;
+  throw new Error(data.error ? data.error.message : 'Cloudinary yükleme hatası');
+}
+
+async function knAddAllViewsToPano() {
+  const viewsWithMockup = KN_VIEW_KEYS.filter(v => knMockups[v]);
+  if (viewsWithMockup.length === 0) {
+    alert('Hiçbir görünüme mockup yüklenmemiş. Önce en az bir görünümü tamamla.');
+    return;
+  }
+  const btn = document.getElementById('kn-add-all-btn');
+  const originalText = btn ? btn.textContent : '';
+  if (btn) { btn.textContent = 'Yükleniyor... (0/' + viewsWithMockup.length + ')'; btn.disabled = true; }
+
+  const urls = [];
+  for (let i = 0; i < viewsWithMockup.length; i++) {
+    try {
+      const canvas = await knBuildCanvasForView(viewsWithMockup[i]);
+      if (canvas) {
+        const url = await knUploadCanvasToCloudinary(canvas);
+        urls.push(url);
+      }
+    } catch (err) {
+      console.error('Görünüm yüklenemedi:', viewsWithMockup[i], err.message);
+    }
+    if (btn) btn.textContent = 'Yükleniyor... (' + (i + 1) + '/' + viewsWithMockup.length + ')';
+  }
+
+  if (btn) { btn.textContent = originalText; btn.disabled = false; }
+
+  if (urls.length === 0) {
+    alert('Hiçbir görsel yüklenemedi, bağlantını kontrol et.');
+    return;
+  }
+
+  const newCard = {
+    id: Date.now().toString(),
+    imgs: urls,
+    img: urls[0],
+    urunTipleri: [],
+    ad: '', nis: '', durum: 'Bekliyor',
+    skor: '', baslik: '', marka: '', fiyat: '', prompt: '', notlar: '',
+    tags: '', kategori: '', varyant: '', stok: '', uretim: '',
+    hikaye: '', bakim: '', iade: '', kargo: '',
+    tarih: new Date().toLocaleDateString('tr-TR')
+  };
+  panoDesigns.unshift(newCard);
+  localStorage.setItem('morphen_designs', JSON.stringify(panoDesigns));
+  alert(urls.length + ' görünüm tek bir tasarım kartında birleştirildi! Tasarım Panosu\'na geçip bilgileri doldurabilirsin.');
+}
+
+async function knAddToPano() {
+  knBuildCanvas(async (canvas) => {
+    try {
+      const url = await knUploadCanvasToCloudinary(canvas);
+      const newCard = {
+        id: Date.now().toString(),
+        imgs: [url],
+        img: url,
+        urunTipleri: [],
+        ad: '', nis: '', durum: 'Bekliyor',
+        skor: '', baslik: '', marka: '', fiyat: '', prompt: '', notlar: '',
+        tags: '', kategori: '', varyant: '', stok: '', uretim: '',
+        hikaye: '', bakim: '', iade: '', kargo: '',
+        tarih: new Date().toLocaleDateString('tr-TR')
+      };
+      panoDesigns.unshift(newCard);
+      localStorage.setItem('morphen_designs', JSON.stringify(panoDesigns));
+      alert('Yeni kart oluşturuldu! Tasarım Panosu sekmesine geçip bilgileri doldurabilirsin.');
+    } catch (err) {
+      alert('Hata: ' + err.message);
+    }
+  });
+}
+
+function knGetRmbgKey() {
+  return localStorage.getItem('morphen_rmbg_key') || '';
+}
+
+function knSaveRmbgKey() {
+  const key = document.getElementById('kn-rmbg-key').value.trim();
+  if (!key) { document.getElementById('kn-rmbg-status').textContent = 'Key boş olamaz'; return; }
+  localStorage.setItem('morphen_rmbg_key', key);
+  document.getElementById('kn-rmbg-status').textContent = 'Key kaydedildi ✓';
+  document.getElementById('kn-rmbg-status').style.color = '#1D9E75';
+}
+
+window.addEventListener('load', () => {
+  const saved = knGetRmbgKey();
+  const keyInput = document.getElementById('kn-rmbg-key');
+  if (saved && keyInput) {
+    keyInput.value = saved;
+    document.getElementById('kn-rmbg-status').textContent = 'Key kayıtlı ✓';
+    document.getElementById('kn-rmbg-status').style.color = '#1D9E75';
+  }
+});
+
+function knDataUrlToBlob(dataUrl) {
+  const arr = dataUrl.split(',');
+  const mimeMatch = arr[0].match(/:(.*?);/);
+  const mime = mimeMatch ? mimeMatch[1] : 'image/png';
+  const bstr = atob(arr[1]);
+  let n = bstr.length;
+  const u8arr = new Uint8Array(n);
+  while (n--) { u8arr[n] = bstr.charCodeAt(n); }
+  return new Blob([u8arr], { type: mime });
+}
+
+async function knRemoveSelectedBg() {
+  if (!knSelectedLayerId) { alert('Önce bir tasarım seç.'); return; }
+  const key = knGetRmbgKey();
+  if (!key) { alert('Önce yukarıdan remove.bg API key girip kaydet.'); return; }
+
+  const btn = document.getElementById('kn-rmbg-btn');
+  const originalText = btn.textContent;
+  btn.textContent = 'İşleniyor...';
+  btn.disabled = true;
+
+  const layer = knLayers[knCurrentView].find(l => l.id === knSelectedLayerId);
+
+  try {
+    const blob = knDataUrlToBlob(layer.src);
+    const formData = new FormData();
+    formData.append('image_file', blob, 'image.png');
+    formData.append('size', 'auto');
+
+    const res = await fetch('https://api.remove.bg/v1.0/removebg', {
+      method: 'POST',
+      headers: { 'X-Api-Key': key },
+      body: formData
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error('API hatası: ' + res.status + ' — ' + errText.slice(0, 100));
+    }
+
+    const resultBlob = await res.blob();
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      layer.src = e.target.result;
+      knRenderLayers();
+      btn.textContent = originalText;
+      btn.disabled = false;
+    };
+    reader.readAsDataURL(resultBlob);
+
+  } catch (err) {
+    alert('Hata: ' + err.message);
+    btn.textContent = originalText;
+    btn.disabled = false;
+  }
+}
+
+/* ===================== RENK DEĞİŞTİR (Color Recolor) ===================== */
+
+const colorPalettes = {
+  "Comfort Colors 1717": {"Black":"25282a","White":"ffffff","Pepper":"4e4b48","Seafoam":"487a7b","Blue Jean":"647692","Butter":"f5e1a4","Violet":"7474c1","True Navy":"041e43","Red":"c8102e","Chalky Mint":"5cb8b2","Espresso":"553c36","Ice Blue":"5b7f95","Ivory":"e7ceb5","Grey":"716e6a","Blue Spruce":"3e5d58","Moss":"22372b","Mustard":"f2cd00","Flo Blue":"5576d1","Watermelon":"f4364c","Light Green":"5c7f71","Sage":"3e4827","Orchid":"c7b2de","Yam":"be531c","Crimson":"a4123f","Denim":"425563","Crunchberry":"ef4a81","Chambray":"bdd6e6","Blossom":"f8bed6","Berry":"7e4966"},
+  "Comfort Colors 1745 Colorblast": {"Amethyst":"9595d2","Citrine":"f4da40","Clay":"a60a3d","Fern":"445a3e","Ocean":"6e80a9","Smoke":"8c8985"},
+  "Comfort Colors Boxy Tee": {"White":"ffffff","Ivory":"e7ceb5","Pepper":"4e4b48","Black":"25282a","Orchid":"c7b2de","Chalky Mint":"5cb8b2","Chambray":"bdd6e6","Butter":"f5e1a4"},
+  "Comfort Colors Tank Top 9360": {"Blossom":"f8bed6","Blue Jean":"647692","Blue Spruce":"3e5d58","Bright Salmon":"ff6d6a","Butter":"f5e1a4","Violet":"7474c1","White":"ffffff","Watermelon":"f4364c","Pepper":"4e4b48","Seafoam":"487a7b","Ivory":"e7ceb5","Flo Blue":"5576d1","Chambray":"bdd6e6","Black":"25282a"},
+  "Comfort Colors Long Sleeve Pocket 4410": {"Violet":"7474c1","White":"ffffff","Black":"25282a","Pepper":"4e4b48","Seafoam":"487a7b","Brick":"8a1538"},
+  "Comfort Colors Long Sleeve 6014": {"Yam":"be531c","White":"ffffff","Black":"25282a","Pepper":"4e4b48","Seafoam":"487a7b","Ivory":"e7ceb5","Blue Jean":"647692","Violet":"7474c1","Sandstone":"a69f88","Espresso":"553c36","Brick":"8a1538"},
+  "Comfort Colors Sweatshirt 1566": {"Violet":"7474c1","White":"ffffff","Blue Jean":"647692","Pepper":"4e4b48","Seafoam":"487a7b","Crimson":"a4123f"},
+  "Comfort Colors Youth 9018": {"Black":"25282a","White":"ffffff","Blue Jean":"647692","Pepper":"4e4b48","Violet":"7474c1","Orchid":"c7b2de","Seafoam":"487a7b","Blossom":"f8bed6","Chalky Mint":"5cb8b2","Grey":"716e6a","Melon":"fa9370"},
+
+  "Bella Canvas Unisex Adult 3001": {"Black":"211e16","Burnt Orange":"cb6015","Kelly":"007a53","Evergreen":"115740","Light Blue":"a6bbc8","Navy":"1f2a44","White":"f4f5f0","Asphalt":"6c6864","Red":"e10600","Dark Grey Heather":"525657","Soft Cream":"decb99","Yellow":"fcea76","Ash":"edf1ff","Orange":"ff6a39","Dusty Blue":"9bb2a2","Mauve":"a36d6a","Citron":"dde3d5","Peach":"f3be8d","Gold":"ffa300","Maroon":"672e45","Pink":"f7ced7","Mint":"a0dab3","Natural":"dfd1a7","Forest":"183028","Mustard":"c6973f","Rust":"9e483f","Military Green":"60705e","Autumn":"9c5331","Lilac":"d1acce","Heather Tan":"b8b298","Heathered Blue Lagoon":"86a1a9","Athletic Heather":"acb1a6","Heather Yellow Gold":"fdd26e"},
+  "Bella Canvas Baby Bodysuit 100B/134B": {"Yellow":"fcea76","Mauve Triblend":"a36d6a","Peach Triblend":"f3be8d","Ice Blue Triblend":"a6bbc8","Pink":"f7ced7"},
+  "Bella Canvas Baby Tee 3001B/3413B": {"Mauve Triblend":"a36d6a","Peach Triblend":"f3be8d","Ice Blue Triblend":"a6bbc8","Heather Maroon":"5b2b42","Pink":"f7ced7","Dark Grey Heather":"525657","Yellow":"fcea76"},
+  "Bella Canvas Toddler Tee 3001T/3413T": {"Mauve Triblend":"a36d6a","Peach Triblend":"f3be8d","Ice Blue Triblend":"a6bbc8","Maroon":"672e45","Pink":"f7ced7","Dark Grey Heather":"525657","Yellow":"fcea76"},
+  "Bella Canvas Micro Rib Baby Tee 1010": {"Solid Black Blend":"211e16","Solid Forest Blend":"183028","Solid Baby Blue":"83b0c1","Solid Natural":"dfd1a7","Solid Pink Blend":"f7ced7","Athletic Heather":"acb1a6","Solid White Blend":"f4f5f0"},
+  "Bella Canvas Micro Rib Racer Tank 1019": {"Solid Black Blend":"211e16","Solid Forest Blend":"183028","Solid Natural Blend":"dfd1a7","Solid Pink Blend":"f7ced7","Athletic Heather":"acb1a6","Solid White Blend":"f4f5f0"},
+  "Bella Canvas Micro Rib Long Sleeve Baby Tee 1501": {"Solid Black Blend":"211e16","Solid Natural Blend":"dfd1a7","Solid Navy Blend":"1f2a44","Athletic Heather":"acb1a6","Solid White Blend":"f4f5f0"},
+  "Bella Canvas Micro Rib Raglan Baby Tee 1201": {"Athletic Heather/Black":"acb1a6","White/Black":"f4f5f0","White/Kelly":"f4f5f0","White/Baby Blue":"f4f5f0","White/Navy":"f4f5f0","White/Pink":"f4f5f0","White/Red":"f4f5f0","White/True Royal":"f4f5f0"},
+  "Bella Canvas Micro Rib Spaghetti Tank 1012": {"Black":"211e16","White":"f4f5f0","Athletic Heather":"acb1a6","Baby Blue":"83b0c1","Pink":"f7ced7"},
+  "Bella Canvas Women V-Neck 6405": {"Athletic Heather":"acb1a6","Black":"211e16","Dark Grey Heather":"525657","Heather Maroon":"5b2b42","Heather Mauve":"a36d6a","Heather Peach":"f3be8d","Maroon":"672e45","Natural":"dfd1a7","Navy":"1f2a44","Red":"e10600","Pink":"f7ced7","Team Purple":"2e1a47","White":"f4f5f0"},
+  "Bella Canvas Youth Tee 3001Y": {"White":"f4f5f0","Black":"211e16","Ash":"edf1ff","Dark Grey Heather":"525657","Dusty Blue":"9bb2a2","Forest":"183028","Athletic Heather":"acb1a6","Gold":"ffa300","Kelly":"007a53","Maroon":"672e45","Heather Mauve":"a36d6a","Military Green":"60705e","Mustard":"c6973f","Ice Blue Triblend":"a6bbc8","Natural":"dfd1a7","Navy":"1f2a44","Heather Peach":"f3be8d","Pink":"f7ced7","Red":"e10600","Heather Orange":"ff6a39"},
+
+  "Gildan Unisex Tee 64000": {"White":"ffffff","Athletic Heather":"97999b","Dark Grey Heather":"425563","Black":"25282a","Heather Maroon":"672e45","Heather Bronze":"c04c36","Sand":"cabfad","Kelly Green":"00805e","Dark Chocolate":"382f2d","Heather Olive":"4a412a","Heather Midnight Navy":"333f48","Red":"d50032","Orange":"f4633a","Mint":"a0cfab","Heather True Royal":"307fe2","Irish Green":"00a74a","Purple":"464e7e","Forest":"273b33","Heather Deep Teal":"40c1ac","Heather Raspberry":"994878","Pink":"f8a3bc","Heather Peach":"f3be8d","Light Blue":"a4c8e1","Navy":"263147","Indigo Blue":"486d87","Military Green":"5e7461","Maroon":"5b2b42","Charcoal":"66676c"},
+  "Gildan Baby/Youth Tee 5000B": {"Dark Grey Heather":"425563","Royal":"224d8f","Black":"25282a","White":"ffffff","Light Pink":"e4c6d4","Light Blue":"a4c8e1","Athletic Heather":"97999b","Natural":"e7ceb5","Red":"d50032"},
+  "Gildan Toddler Tee 5100P": {"Dark Grey Heather":"425563","True Royal":"224d8f","Black":"25282a","White":"ffffff","Light Pink":"e4c6d4","Athletic Heather":"97999b","Red":"d50032"},
+  "Gildan Unisex Hoodie 18500": {"Black":"25282a","Dark Grey Heather":"425563","Athletic Grey":"97999b","White":"ffffff","Dark Chocolate":"382f2d","Maroon":"5b2b42","Gold":"eead1a","Red":"d50032","Orange":"f4633a","Light Pink":"e4c6d4","Sand":"cabfad","Purple":"464e7e","Light Blue":"a4c8e1","Military Green":"5e7461","Irish Green":"00a74a","Forest Green":"273b33","Royal":"224d8f","Navy":"263147"},
+  "Gildan Unisex Sweatshirt 18000": {"Black":"25282a","Dark Grey Heather":"425563","Athletic Grey":"97999b","White":"ffffff","Dark Chocolate":"382f2d","Maroon":"5b2b42","Gold":"eead1a","Red":"d50032","Orange":"f4633a","Light Pink":"e4c6d4","Sand":"cabfad","Purple":"464e7e","Light Blue":"a4c8e1","Military Green":"5e7461","Irish Green":"00a74a","Forest Green":"273b33","Royal":"224d8f","Carolina Blue":"7ba4db","Indigo Blue":"486d87","Navy":"263147"},
+  "Gildan Youth Sweatshirt 18000B": {"White":"ffffff","Safety Pink":"e16f8f","True Royal":"224d8f","Black":"25282a","Sport Grey":"97999b","Red":"d50032","Forest Green":"273b33","Maroon":"5b2b42","Navy":"263147","Dark Grey Heather":"425563"},
+  "Gildan Youth Hoodie 18500B": {"Black":"25282a","White":"ffffff","Red":"d50032","Navy":"263147"},
+  "Gildan Youth Tee 64000B": {"Black":"25282a","White":"ffffff","True Royal":"224d8f","Athletic Heather":"97999b","Maroon":"5b2b42","Red":"d50032","Light Pink":"e4c6d4","Dark Grey":"425563"},
+
+  "Rabbit Skins Bodysuit 4400": {"White":"eff0eb","Black":"101820","Kelly":"008264","Navy":"051c2c","Natural":"dfd1a7","Red":"da291c","Royal":"1d4289","Pink":"e8b3c3","Light Blue":"9bb8d3","Forest":"1c4538","Cotton Brown":"8b7c5e","Heather":"888b8d","Vintage Smoke":"53565a"},
+  "Rabbit Skins Baby Tee 3322": {"Black":"101820","Kelly":"008264","Light Blue":"9bb8d3","Navy":"051c2c","White":"eff0eb","Red":"da291c","Heather":"888b8d","Ash":"d0d3d4","Orange":"fc4c02","Military Green":"535435","Gold":"ffb81c","Natural":"dfd1a7","Forest":"1c4538"},
+  "Rabbit Skins Toddler Sweatshirt 3317": {"Light Pink":"e8b3c3","Red":"da291c","Natural Heather":"dcd7d2","Black":"101820","Navy":"051c2c","Royal":"1d4289","Dark Grey Heather":"53565a","Sport Grey":"a7a8a9","White":"eff0eb"},
+  "Rabbit Skins Toddler Tee 3321": {"Black":"101820","Vintage Smoke":"53565a","Heather":"888b8d","White":"eff0eb","Peachy":"ecc3b2","Gold":"ffb81c","Kelly":"008264","Light Blue":"9bb8d3","Pink":"e8b3c3","Red":"da291c","Natural":"dfd1a7","Royal":"1d4289","Navy":"051c2c","Ash":"d0d3d4","Orange":"fc4c02","Military Green":"535435","Forest":"1c4538","Coyote Brown":"8b7c5e"},
+
+  "Next Level Crop Top 1580": {"White":"f4f9ff","Antique Gold":"b59e5f","Black":"27272a","Dark Grey":"8e918f","Heather Grey":"a19fa5","Midnight Navy":"2a3244","Red":"cd212a"}
+};
+
+knRenderMockupBg();
+knRenderLayers();
+
+</script>
+
+<div style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center;" id="pano-modal-bg" onclick="panoCloseModal(event)">
+<div style="background:var(--color-background-primary);border-radius:var(--border-radius-lg);padding:1.5rem;width:90%;max-width:460px;max-height:85vh;overflow-y:auto;">
+  <div style="font-size:15px;font-weight:500;margin-bottom:1rem;display:flex;justify-content:space-between;align-items:center;"><span id="pano-modal-title">Yeni tasarım ekle</span><span><button onclick="panoOpenModalFresh()" style="font-size:11px;color:var(--color-text-tertiary);background:none;border:none;cursor:pointer;text-decoration:underline;margin-right:8px;">Sıfırla</button><button onclick="panoCloseModalDirect()" style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--color-text-secondary);">✕</button></span></div>
+  <div style="margin-bottom:10px;">
+    <label style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:6px;">Görseller (max 10)</label>
+    <div id="pf-img-grid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:8px;"></div>
+    <button type="button" onclick="document.getElementById('pf-img-input').click()" style="width:100%;padding:8px;font-size:13px;border-radius:var(--border-radius-md);cursor:pointer;background:#1D9E75;color:white;border:none;">+ Görsel ekle (Cloudinary)</button>
+    <input type="file" id="pf-img-input" accept="image/*" style="display:none;" onchange="panoUploadToCloudinary(this)" />
+    <div id="pf-upload-status" style="font-size:12px;color:var(--color-text-secondary);margin-top:4px;text-align:center;"></div>
+  </div>
+  <div style="margin-bottom:10px;"><label style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:4px;">Tasarım adı</label><input type="text" id="pf-ad" placeholder="örn: 1776-2026 Arrow" oninput="panoSaveDraft()"></div>
+  <div style="margin-bottom:10px;"><label style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:4px;">Niş</label><input type="text" id="pf-nis" placeholder="örn: Patriotic, 4th of July" oninput="panoSaveDraft()"></div>
+  <div style="margin-bottom:10px;">
+    <label style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:6px;">Marka (hangisinde basılacak + model kodu)</label>
+    <div style="display:flex;flex-direction:column;gap:6px;font-size:12px;">
+      <div style="display:flex;align-items:center;gap:8px;"><label style="display:flex;align-items:center;gap:6px;cursor:pointer;min-width:120px;"><input type="checkbox" id="pt-bella" style="width:auto;" onchange="panoSaveDraft()"> Bella Canvas</label><input type="text" id="pt-bella-model" placeholder="örn: 3001" style="flex:1;font-size:12px;padding:5px 8px;" oninput="panoSaveDraft()"></div>
+      <div style="display:flex;align-items:center;gap:8px;"><label style="display:flex;align-items:center;gap:6px;cursor:pointer;min-width:120px;"><input type="checkbox" id="pt-cc" style="width:auto;" onchange="panoSaveDraft()"> Comfort Colors</label><input type="text" id="pt-cc-model" placeholder="örn: 1717" style="flex:1;font-size:12px;padding:5px 8px;" oninput="panoSaveDraft()"></div>
+      <div style="display:flex;align-items:center;gap:8px;"><label style="display:flex;align-items:center;gap:6px;cursor:pointer;min-width:120px;"><input type="checkbox" id="pt-gildan" style="width:auto;" onchange="panoSaveDraft()"> Gildan</label><input type="text" id="pt-gildan-model" placeholder="örn: 64000" style="flex:1;font-size:12px;padding:5px 8px;" oninput="panoSaveDraft()"></div>
+      <div style="display:flex;align-items:center;gap:8px;"><label style="display:flex;align-items:center;gap:6px;cursor:pointer;min-width:120px;"><input type="checkbox" id="pt-rabbit" style="width:auto;" onchange="panoSaveDraft()"> Rabbit Skins</label><input type="text" id="pt-rabbit-model" placeholder="örn: 3321" style="flex:1;font-size:12px;padding:5px 8px;" oninput="panoSaveDraft()"></div>
+      <div style="display:flex;align-items:center;gap:8px;"><label style="display:flex;align-items:center;gap:6px;cursor:pointer;min-width:120px;"><input type="checkbox" id="pt-nextlevel" style="width:auto;" onchange="panoSaveDraft()"> Next Level</label><input type="text" id="pt-nextlevel-model" placeholder="örn: 1580" style="flex:1;font-size:12px;padding:5px 8px;" oninput="panoSaveDraft()"></div>
+    </div>
+  </div>
+  <div style="margin-bottom:10px;"><label style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:4px;">Durum</label><select id="pf-durum" onchange="panoSaveDraft()"><option value="Bekliyor">Bekliyor</option><option value="Hazır">Hazır</option><option value="Yayında">Yayında</option></select></div>
+  <div style="margin-bottom:10px;"><label style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:4px;">Potansiyel skoru</label><input type="text" id="pf-skor" placeholder="örn: 8/10" oninput="panoSaveDraft()"></div>
+  <div style="margin-bottom:10px;"><label style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:4px;">Etsy başlığı</label><input type="text" id="pf-baslik" placeholder="SEO başlığı" oninput="panoSaveDraft()"></div>
+  <div style="margin-bottom:10px;"><label style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:4px;">Marka önerisi</label><input type="text" id="pf-marka" placeholder="örn: Comfort Colors 1717" oninput="panoSaveDraft()"></div>
+  <div style="margin-bottom:10px;"><label style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:4px;">Fiyat tavsiyesi</label><input type="text" id="pf-fiyat" placeholder="örn: $24-32" oninput="panoSaveDraft()"></div>
+  <div style="margin-bottom:10px;"><label style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:4px;">AI prompt</label><textarea id="pf-prompt" style="min-height:60px;resize:vertical;" placeholder="Tekrar üretmek için AI promptu" oninput="panoSaveDraft()"></textarea></div>
+  <div style="margin-bottom:10px;"><label style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:4px;">Notlar</label><textarea id="pf-notlar" style="min-height:60px;resize:vertical;" placeholder="Geliştirme önerileri..." oninput="panoSaveDraft()"></textarea></div>
+
+  <div style="height:0.5px;background:var(--color-border-tertiary);margin:1rem 0;"></div>
+  <div style="font-size:12px;font-weight:500;color:#1D9E75;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.04em;">Etsy Listing Bilgileri</div>
+
+  <div style="margin-bottom:10px;"><label style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:4px;">Tag'ler (13 adet, virgülle)</label><textarea id="pf-tags" style="min-height:60px;resize:vertical;" placeholder="vintage cat shirt, cat lover gift, funny cat tee..." oninput="panoSaveDraft()"></textarea></div>
+
+  <div style="margin-bottom:10px;"><label style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:4px;">Kategori</label><input type="text" id="pf-kategori" placeholder="örn: Clothing &gt; Tops &amp; Tees &gt; T-Shirts" oninput="panoSaveDraft()" /></div>
+
+  <div style="margin-bottom:10px;"><label style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:4px;">Varyantlar (renk, beden)</label><textarea id="pf-varyant" style="min-height:60px;resize:vertical;" placeholder="Renkler: Black, Navy, White&#10;Bedenler: S, M, L, XL, 2XL, 3XL" oninput="panoSaveDraft()"></textarea></div>
+
+  <div style="margin-bottom:10px;"><label style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:4px;">Stok miktarı</label><input type="text" id="pf-stok" placeholder="örn: 999" oninput="panoSaveDraft()"></div>
+
+  <div style="margin-bottom:10px;"><label style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:4px;">Üretim süresi</label><input type="text" id="pf-uretim" placeholder="örn: 1-3 iş günü" oninput="panoSaveDraft()"></div>
+
+  <div style="margin-bottom:10px;"><label style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:4px;">Ürün hikayesi (TR/EN)</label><textarea id="pf-hikaye" style="min-height:100px;resize:vertical;" placeholder="Listing Yazıcı'dan kopyala..." oninput="panoSaveDraft()"></textarea></div>
+
+  <div style="margin-bottom:10px;"><label style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:4px;">Bakım talimatları (TR/EN)</label><textarea id="pf-bakim" style="min-height:80px;resize:vertical;" placeholder="Listing Yazıcı'dan kopyala..." oninput="panoSaveDraft()"></textarea></div>
+
+  <div style="margin-bottom:10px;"><label style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:4px;">İade & iptal politikası (TR/EN)</label><textarea id="pf-iade" style="min-height:80px;resize:vertical;" placeholder="Listing Yazıcı'dan kopyala..." oninput="panoSaveDraft()"></textarea></div>
+
+  <div style="margin-bottom:10px;"><label style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:4px;">Kargo profili</label><input type="text" id="pf-kargo" placeholder="örn: Standard US Shipping, Free Shipping" oninput="panoSaveDraft()"></div>
+
+  <div style="display:flex;gap:8px;margin-top:1rem;"><button onclick="if(panoEditId){panoDelete(panoEditId);}" id="pano-modal-delete-btn" style="display:none;padding:9px 12px;border-radius:var(--border-radius-md);cursor:pointer;font-size:13px;background:#FCEBEB;color:#922B21;border:none;">Sil</button><button onclick="panoCloseModalDirect()" style="flex:1;padding:9px;border-radius:var(--border-radius-md);cursor:pointer;font-size:13px;background:var(--color-background-secondary);color:var(--color-text-secondary);border:0.5px solid var(--color-border-secondary);">İptal</button><button onclick="panoSave()" style="flex:1;padding:9px;border-radius:var(--border-radius-md);cursor:pointer;font-size:13px;background:#1D9E75;color:white;border:none;">Kaydet</button></div>
+</div>
+</div>
+</body>
+</html>
