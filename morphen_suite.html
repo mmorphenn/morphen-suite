@@ -1,0 +1,2151 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Morphen — Etsy Araçları</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f4f0; min-height: 100vh; color: #1a1a1a; }
+  .top-bar { background: white; border-bottom: 0.5px solid #e5e5e5; padding: 0 2rem; display: flex; align-items: center; gap: 1.5rem; position: sticky; top: 0; z-index: 100; }
+  .logo { display: flex; align-items: center; gap: 8px; padding: 14px 0; font-size: 16px; font-weight: 500; color: #1a1a1a; text-decoration: none; border-right: 0.5px solid #e5e5e5; padding-right: 1.5rem; margin-right: 0.5rem; }
+  .logo span { font-size: 20px; }
+  .tabs { display: flex; gap: 4px; }
+  .tab { padding: 8px 16px; font-size: 13px; font-weight: 500; border: none; background: none; cursor: pointer; color: #888; border-radius: 8px; transition: all 0.15s; }
+  .tab:hover { background: #f5f4f0; color: #1a1a1a; }
+  .tab.active { background: #E1F5EE; color: #085041; }
+  .page { display: none; padding: 2rem; max-width: 700px; margin: 0 auto; }
+  .page.active { display: block; }
+  .card { background: white; border-radius: 14px; border: 0.5px solid #e5e5e5; padding: 1.25rem; margin-bottom: 1rem; }
+  .api-label { font-size: 12px; font-weight: 500; color: #888; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; display: block; }
+  .api-row { display: flex; gap: 8px; }
+  .api-input { flex: 1; padding: 9px 12px; border: 0.5px solid #ddd; border-radius: 8px; font-size: 13px; font-family: monospace; background: #fafafa; color: #1a1a1a; }
+  .api-input:focus { outline: none; border-color: #1D9E75; background: white; }
+  .api-btn { padding: 9px 16px; background: #1D9E75; color: white; border: none; border-radius: 8px; font-size: 13px; cursor: pointer; white-space: nowrap; }
+  .api-btn:hover { background: #0F6E56; }
+  .api-status { font-size: 12px; margin-top: 6px; }
+  .api-status.ok { color: #1D9E75; }
+  .api-status.err { color: #E24B4A; }
+  .upload-zone { border: 1.5px dashed #ddd; border-radius: 12px; padding: 2.5rem; text-align: center; cursor: pointer; transition: all 0.15s; background: #fafafa; }
+  .upload-zone:hover, .upload-zone.drag { background: #f0faf6; border-color: #1D9E75; }
+  .upload-icon { font-size: 36px; margin-bottom: 10px; }
+  .upload-text { font-size: 14px; color: #555; }
+  .upload-sub { font-size: 12px; color: #aaa; margin-top: 4px; }
+  input[type=file] { display: none; }
+  .preview-section { display: none; margin-bottom: 1rem; }
+  .preview-inner { display: flex; gap: 1rem; align-items: flex-start; }
+  .preview-img { width: 140px; height: 140px; object-fit: cover; border-radius: 10px; border: 0.5px solid #e5e5e5; flex-shrink: 0; }
+  .preview-info { flex: 1; }
+  .preview-name { font-size: 13px; color: #555; margin-bottom: 8px; word-break: break-all; }
+  .btn-primary { width: 100%; padding: 10px; background: #1D9E75; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: 500; }
+  .btn-primary:hover { background: #0F6E56; }
+  .btn-primary:disabled { background: #aaa; cursor: not-allowed; }
+  .btn-secondary { width: 100%; padding: 8px; background: white; color: #888; border: 0.5px solid #ddd; border-radius: 8px; font-size: 13px; cursor: pointer; margin-top: 6px; }
+  .btn-secondary:hover { background: #f5f5f5; }
+  .loading { display: none; text-align: center; padding: 1.5rem; color: #888; font-size: 13px; }
+  .spinner-lg { width: 24px; height: 24px; border: 2px solid #eee; border-top: 2px solid #1D9E75; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 10px; }
+  .spinner-sm { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.4); border-top: 2px solid white; border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .result-section { display: none; }
+  .result-row { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 0.5px solid #f0f0f0; }
+  .result-row:last-child { border-bottom: none; }
+  .badge { font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 20px; flex-shrink: 0; min-width: 120px; text-align: center; }
+  .b-nis { background: #FAEEDA; color: #633806; }
+  .b-stil { background: #EEEDFE; color: #3C3489; }
+  .b-kim { background: #E1F5EE; color: #085041; }
+  .b-strateji { background: #E6F1FB; color: #0C447C; }
+  .b-risk { background: #FCEBEB; color: #501313; }
+  .result-val { font-size: 13px; color: #1a1a1a; line-height: 1.6; flex: 1; }
+  .copy-section { display: none; margin-top: 1rem; }
+  .copy-box { background: #f8f8f6; border: 0.5px solid #e5e5e5; border-radius: 8px; padding: 12px; font-size: 12px; font-family: monospace; color: #555; line-height: 1.8; white-space: pre-wrap; word-break: break-all; }
+  .copy-btn-sm { margin-top: 8px; width: 100%; padding: 9px; background: white; border: 0.5px solid #ddd; border-radius: 8px; font-size: 13px; cursor: pointer; color: #555; }
+  .copy-btn-sm:hover { background: #f5f5f5; }
+  .copy-btn-sm.copied { color: #1D9E75; border-color: #1D9E75; }
+  .tip { font-size: 12px; color: #aaa; text-align: center; margin-top: 1rem; line-height: 1.6; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group.full { grid-column: 1 / -1; }
+  label { font-size: 12px; font-weight: 500; color: #888; text-transform: uppercase; letter-spacing: 0.04em; }
+  input[type=text], input[type=password], select, textarea { font-family: inherit; font-size: 13px; color: #1a1a1a; background: #fafafa; border: 0.5px solid #ddd; border-radius: 8px; padding: 8px 12px; width: 100%; }
+  input[type=text]:focus, select:focus, textarea:focus { outline: none; border-color: #1D9E75; background: white; }
+  textarea { resize: vertical; min-height: 70px; }
+  .gen-btn { width: 100%; padding: 11px; font-size: 14px; font-weight: 500; background: #1D9E75; color: white; border: none; border-radius: 8px; cursor: pointer; margin-top: 4px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .gen-btn:hover { background: #0F6E56; }
+  .gen-btn:disabled { background: #aaa; cursor: not-allowed; }
+  .filter-btn-p { font-size: 12px; padding: 4px 12px; border-radius: 20px; cursor: pointer; border: 0.5px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-secondary); }
+  .result-block { margin-bottom: 1rem; }
+  .block-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .block-title { font-size: 12px; font-weight: 500; color: #888; text-transform: uppercase; letter-spacing: 0.04em; }
+  .copy-block-btn { font-size: 12px; padding: 4px 10px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 4px; background: #f5f4f0; border: 0.5px solid #ddd; color: #888; }
+  .copy-block-btn:hover { background: white; }
+  .copy-block-btn.copied { color: #1D9E75; border-color: #1D9E75; }
+  .text-box { background: #f8f8f6; border: 0.5px solid #e5e5e5; border-radius: 8px; padding: 12px 14px; font-size: 13px; color: #1a1a1a; line-height: 1.7; white-space: pre-wrap; word-break: break-word; }
+  .copy-all-btn { width: 100%; padding: 10px; font-size: 13px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; background: white; border: 0.5px solid #ddd; color: #555; }
+  .copy-all-btn:hover { background: #f5f4f0; }
+  .badge-l { font-size: 11px; padding: 2px 8px; border-radius: 20px; }
+  .b-hikaye { background: #E1F5EE; color: #085041; }
+  .b-bakim { background: #E6F1FB; color: #0C447C; }
+  .b-iade { background: #FAEEDA; color: #633806; }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  .kn-container { max-width: 1100px; margin: 0 auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #1a1a1a; }
+  .kn-header { text-align: center; margin-bottom: 1.5rem; }
+  .kn-header h1 { font-size: 20px; font-weight: 500; }
+  .kn-header p { font-size: 13px; color: #888; margin-top: 4px; }
+  .kn-layout { display: grid; grid-template-columns: 220px 1fr 260px; gap: 1rem; }
+  @media (max-width: 900px) { .kn-layout { grid-template-columns: 1fr; } }
+
+  .kn-panel { background: white; border-radius: 14px; border: 0.5px solid #e5e5e5; padding: 1rem; }
+  .kn-panel-title { font-size: 11px; font-weight: 500; color: #888; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 10px; }
+
+  .kn-view-btn { width: 100%; padding: 7px 9px; margin-bottom: 4px; border-radius: 8px; border: 0.5px solid #ddd; background: #fafafa; cursor: pointer; font-size: 12px; text-align: left; display: flex; align-items: center; gap: 8px; }
+  .kn-view-btn.active { background: #1D9E75; color: white; border-color: #1D9E75; }
+  .kn-view-btn:hover:not(.active) { background: #f0faf6; }
+
+  .kn-color-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+  .kn-color-dot { width: 28px; height: 28px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
+  .kn-color-dot.active { border-color: #1D9E75; }
+
+  .kn-canvas-wrap { background: #fafafa; border-radius: 12px; display: flex; align-items: center; justify-content: center; min-height: 560px; position: relative; overflow: hidden; }
+  .kn-shirt-stage { position: relative; width: 420px; height: 520px; }
+  .kn-shirt-svg { width: 100%; height: 100%; }
+
+  .kn-design-layer { position: absolute; cursor: move; touch-action: none; user-select: none; }
+  .kn-design-layer img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+  .kn-design-layer.selected { outline: 2px dashed #1D9E75; outline-offset: 4px; }
+
+  .kn-resize-handle { position: absolute; width: 14px; height: 14px; background: #1D9E75; border-radius: 50%; bottom: -7px; right: -7px; cursor: nwse-resize; border: 2px solid white; }
+  .kn-rotate-handle { position: absolute; width: 14px; height: 14px; background: #378ADD; border-radius: 50%; top: -7px; right: -7px; cursor: grab; border: 2px solid white; }
+
+  .kn-upload-zone { border: 1.5px dashed #ddd; border-radius: 10px; padding: 1.5rem 1rem; text-align: center; cursor: pointer; margin-bottom: 1rem; }
+  .kn-upload-zone:hover { background: #f0faf6; border-color: #1D9E75; }
+  .kn-upload-zone .kn-ico { font-size: 24px; margin-bottom: 6px; }
+  .kn-upload-zone .kn-txt { font-size: 12px; color: #888; }
+  input[type=file] { display: none; }
+
+  .kn-control-group { margin-bottom: 14px; }
+  .kn-control-label { font-size: 12px; color: #555; display: flex; justify-content: space-between; margin-bottom: 4px; }
+  .kn-control-label span:last-child { font-weight: 500; color: #1D9E75; }
+  input[type=range] { width: 100%; }
+
+  .kn-layer-list { margin-top: 6px; }
+  .kn-layer-item { display: flex; align-items: center; gap: 8px; padding: 7px 8px; border-radius: 8px; cursor: pointer; font-size: 12px; margin-bottom: 4px; border: 0.5px solid transparent; }
+  .kn-layer-item:hover { background: #f5f5f5; }
+  .kn-layer-item.active { background: #E1F5EE; border-color: #1D9E75; }
+  .kn-layer-item .kn-thumb { width: 28px; height: 28px; border-radius: 4px; background: #eee; flex-shrink: 0; object-fit: contain; }
+  .kn-layer-item .kn-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .kn-layer-item .kn-del { color: #bbb; cursor: pointer; font-size: 13px; }
+  .kn-layer-item .kn-del:hover { color: #E24B4A; }
+
+  .kn-btn-primary { width: 100%; padding: 10px; background: #1D9E75; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500; margin-top: 8px; }
+  .kn-btn-primary:hover { background: #0F6E56; }
+  .kn-btn-secondary { width: 100%; padding: 9px; background: white; color: #888; border: 0.5px solid #ddd; border-radius: 8px; cursor: pointer; font-size: 13px; margin-top: 6px; }
+  .kn-btn-secondary:hover { background: #f5f5f5; }
+
+  .kn-guide-lines { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+
+  .kn-tip { font-size: 11px; color: #aaa; text-align: center; margin-top: 1rem; line-height: 1.6; }
+
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="logo"><span>🦋</span> Morphen</div>
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('analizci')">Ürün Analizci</button>
+    <button class="tab" onclick="switchTab('listing')">Listing Yazıcı</button>
+    <button class="tab" onclick="switchTab('pano')">Tasarım Panosu</button>
+    <button class="tab" onclick="switchTab('konum')">Konumlandırıcı</button>
+    <button class="tab" onclick="switchTab('ayarlar')">Ayarlar</button>
+  </div>
+</div>
+
+<!-- ANALİZCİ -->
+<div class="page active" id="page-analizci">
+  <div class="card" id="a-upload-card">
+    <div class="upload-zone" id="a-zone"
+      onclick="document.getElementById('a-file-in').click()"
+      ondragover="aEv(event,'drag')" ondragleave="aEv(event,'')" ondrop="aDrop(event)">
+      <div class="upload-icon">📷</div>
+      <div class="upload-text">Etsy ürün görselini sürükle veya tıkla</div>
+      <div class="upload-sub">JPG, PNG — max 10MB</div>
+    </div>
+    <input type="file" id="a-file-in" accept="image/*" onchange="aLoadFile(this)">
+  </div>
+
+  <div class="card preview-section" id="a-preview">
+    <div class="preview-inner">
+      <img class="preview-img" id="a-preview-img" src="" alt="Ürün görseli" />
+      <div class="preview-info">
+        <div class="preview-name" id="a-preview-name"></div>
+        <button class="btn-primary" onclick="analyze()">Analiz Et</button>
+        <button class="btn-secondary" onclick="aReset()">Yeni görsel yükle</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card loading" id="a-loading"><div class="spinner-lg"></div>Analiz yapılıyor...</div>
+
+  <div class="card result-section" id="a-result">
+    <div class="result-row"><span class="badge b-nis">Niş</span><span class="result-val" id="r-nis"></span></div>
+    <div class="result-row"><span class="badge b-stil">Tasarım stili</span><span class="result-val" id="r-stil"></span></div>
+    <div class="result-row"><span class="badge b-kim">Kim alır</span><span class="result-val" id="r-kim"></span></div>
+    <div class="result-row"><span class="badge b-strateji">Strateji notu</span><span class="result-val" id="r-strateji"></span></div>
+    <div class="result-row"><span class="badge" style="background:#EAF3DE;color:#173404;">Mevsimsellik</span><span class="result-val" id="r-mevsim"></span></div>
+    <div class="result-row"><span class="badge" style="background:#FAEEDA;color:#412402;">Fiyat tavsiyesi</span><span class="result-val" id="r-fiyat"></span></div>
+    <div class="result-row"><span class="badge" style="background:#E1F5EE;color:#085041;">Etsy başlığı</span><span class="result-val" id="r-baslik"></span></div>
+    <div class="result-row"><span class="badge" style="background:#EEEDFE;color:#3C3489;">Marka önerisi</span><span class="result-val" id="r-marka"></span></div>
+    <div class="result-row"><span class="badge" style="background:#FAEEDA;color:#633806;">Alternatif konsept</span><span class="result-val" id="r-alternatif"></span></div>
+    <div class="result-row"><span class="badge" style="background:#E1F5EE;color:#085041;">Potansiyel skoru</span><span class="result-val" id="r-skor"></span></div>
+    <div class="result-row"><span class="badge" style="background:#FCEBEB;color:#3C3489;">Tasarım geliştirme</span><span class="result-val" id="r-gelistirme"></span></div>
+    <div class="result-row"><span class="badge" style="background:#E6F1FB;color:#0C447C;">AI prompt</span><span class="result-val" id="r-aiprompt" style="font-family:monospace; font-size:12px;"></span></div>
+    <div class="result-row"><span class="badge" style="background:#FAEEDA;color:#412402;">AI prompt (geliştirilmiş)</span><span class="result-val" id="r-aiprompt-gelistirilmis" style="font-family:monospace; font-size:12px;"></span></div>
+    <div class="result-row" id="r-risk-row" style="display:none;"><span class="badge b-risk">Risk</span><span class="result-val" id="r-risk"></span></div>
+  </div>
+  <div class="card" id="mockup-card" style="display:none; background: #f0faf6; border: 0.5px solid #9FE1CB;">
+    <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+      <span style="font-size:22px;">👕</span>
+      <div style="flex:1;">
+        <div style="font-size:13px; font-weight:500; color:#085041; margin-bottom:4px;">Sıradaki adım — Mockup oluştur</div>
+        <div style="font-size:12px; color:#0F6E56; line-height:1.6;">Tasarımını Printful Mockup Generator'a yükle, model fotoğrafını indir, Etsy'ye hazır.</div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:6px; flex-shrink:0;">
+        <button onclick="window.open('https://www.printful.com/mockup-generator','_blank')" style="padding:8px 16px; background:#1D9E75; color:white; border:none; border-radius:8px; font-size:13px; cursor:pointer; white-space:nowrap;">Printful'u aç →</button>
+        <button onclick="window.open('https://placeit.net/t-shirts','_blank')" style="padding:8px 16px; background:white; color:#0F6E56; border:0.5px solid #1D9E75; border-radius:8px; font-size:13px; cursor:pointer; white-space:nowrap;">Placeit'i aç →</button>
+      </div>
+    </div>
+    <div style="margin-top:12px; padding-top:12px; border-top:0.5px solid #9FE1CB;">
+      <div style="font-size:11px; font-weight:500; color:#085041; margin-bottom:6px;">ADIMLAR</div>
+      <div style="font-size:12px; color:#0F6E56; line-height:2;" id="mockup-steps">1. Printful'u aç → Mockup Generator → önerilen modeli seç<br>2. Renk seç (Navy, Black veya White dene)<br>3. Tasarım PNG'ni yükle → pozisyonu ayarla<br>4. Mockup'ı indir → Etsy listing'ine ekle</div>
+    </div>
+  </div>
+
+  <div class="card copy-section" id="a-copy">
+    <span class="api-label">Excel için kopyala</span>
+    <div class="copy-box" id="a-copy-box"></div>
+    <button class="copy-btn-sm" id="a-copy-btn" onclick="aCopyText()">Kopyala</button>
+    <button class="btn-primary" style="margin-top:8px;" onclick="sendToListing()">✍️ Listing Yazıcı'ya gönder</button>
+    <button class="btn-secondary" style="margin-top:6px;" onclick="aReset()">Yeni görsel analiz et</button>
+  </div>
+  <div class="tip">Her analiz yaklaşık $0.002 — $5 kredi ile 2000+ görsel.</div>
+</div>
+
+<!-- LİSTİNG YAZICI -->
+<div class="page" id="page-listing">
+  <div class="card" id="l-form-card">
+    <div class="form-grid">
+      <div class="form-group"><label>Ürün adı</label><input type="text" id="l-urun" placeholder="örn: Wildflower Floral Tee" /></div>
+      <div class="form-group"><label>Marka</label>
+        <select id="l-marka">
+          <optgroup label="Bella Canvas">
+          <option>Bella Canvas Unisex Adult T-Shirt 3001</option>
+          <option>Bella Canvas Baby Bodysuit 100B/134B</option>
+          <option>Bella Canvas Baby Tee 3001B/3413B</option>
+          <option>Bella Canvas Toddler Tee 3001T/3413T</option>
+          <option>Bella Canvas Micro Rib Baby Tee 1010</option>
+          <option>Bella Canvas Micro Rib Racer Tank 1019</option>
+          <option>Bella Canvas Micro Rib Long Sleeve Baby Tee 1501</option>
+          <option>Bella Canvas Micro Rib Raglan Baby Tee 1201</option>
+          <option>Bella Canvas Micro Rib Spaghetti Tank 1012</option>
+          <option>Bella Canvas Women V-Neck 6405</option>
+          <option>Bella Canvas Youth Tee 3001Y</option>
+          <option>Bella Canvas Youth Tank 3480Y</option>
+          </optgroup>
+          <optgroup label="Comfort Colors">
+          <option>Comfort Colors T-Shirt 1717</option>
+          <option>Comfort Colors ColorBlast T-Shirt 1745</option>
+          <option>Comfort Colors Boxy Tee</option>
+          <option>Comfort Colors Garment-Dyed Heavyweight Tee</option>
+          <option>Comfort Colors Long Sleeve Pocket T-Shirt 4410</option>
+          <option>Comfort Colors Long Sleeve T-Shirt 6014</option>
+          <option>Comfort Colors Sweatshirt 1566</option>
+          <option>Comfort Colors Youth T-Shirt 9018</option>
+          </optgroup>
+          <optgroup label="Gildan">
+          <option>Gildan Baby Tee/Youth T-Shirt 5000B</option>
+          <option>Gildan Toddler T-Shirt 5100P</option>
+          <option>Gildan Unisex Hoodie 18500</option>
+          <option>Gildan Unisex Sweatshirt 18000</option>
+          <option>Gildan Unisex T-Shirt 64000</option>
+          <option>Gildan Youth Sweatshirt 18000B</option>
+          <option>Gildan Youth Hoodie 18500B</option>
+          <option>Gildan Youth T-Shirt 64000B</option>
+          </optgroup>
+          <optgroup label="Rabbit Skins">
+          <option>Rabbit Skins Infant Baby Rib Bodysuit 4400</option>
+          <option>Rabbit Skins Baby Tee 3322</option>
+          <option>Rabbit Skins Toddler Sweatshirt 3317</option>
+          <option>Rabbit Skins Toddler T-Shirt 3321</option>
+          <option>Rabbit Skins Toddler Tank 3323</option>
+          </optgroup>
+          <optgroup label="Next Level">
+          <option>Next Level Women's Ideal Crop Top 1580</option>
+          </optgroup>
+        </select>
+      </div>
+      <div class="form-group"><label>Niş</label><input type="text" id="l-nis" placeholder="örn: nature lovers, floral aesthetic" /></div>
+      <div class="form-group"><label>Hedef kitle</label><input type="text" id="l-hedef" placeholder="örn: 25-40 yaş kadınlar" /></div>
+      <div class="form-group"><label>Tasarım stili</label><input type="text" id="l-stil" placeholder="örn: minimal floral, watercolor" /></div>
+      <div class="form-group"><label>İptal süresi</label>
+        <select id="l-iptal"><option value="12">12 saat</option><option value="24" selected>24 saat</option><option value="48">48 saat</option></select>
+      </div>
+      <div class="form-group full"><label>Ek not (isteğe bağlı)</label><textarea id="l-not" placeholder="Eklemek istediğin bir şey?"></textarea></div>
+    </div>
+    <div style="margin-top:12px;">
+      <button class="gen-btn" id="l-gen-btn" onclick="generateListing()">
+        <div class="spinner-sm" id="l-spinner"></div>
+        <span id="l-gen-label">✨ Listing metinlerini oluştur</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="result-section" id="l-result">
+    <div class="card result-block">
+      <div class="block-header"><div class="block-title"><span class="badge-l b-hikaye">Ürün hikayesi</span></div><button class="copy-block-btn" onclick="copyBlock('l-hikaye','this_btn')" id="cb-hikaye">Kopyala</button></div>
+      <div class="text-box" id="l-hikaye"></div>
+    </div>
+    <div class="card result-block">
+      <div class="block-header"><div class="block-title"><span class="badge-l b-bakim">Bakım talimatları</span></div><button class="copy-block-btn" onclick="copyBlock('l-bakim','this_btn')" id="cb-bakim">Kopyala</button></div>
+      <div class="text-box" id="l-bakim"></div>
+    </div>
+    <div class="card result-block">
+      <div class="block-header"><div class="block-title"><span class="badge-l b-iade">İptal & iade politikası</span></div><button class="copy-block-btn" onclick="copyBlock('l-iade','this_btn')" id="cb-iade">Kopyala</button></div>
+      <div class="text-box" id="l-iade"></div>
+    </div>
+    <button class="copy-all-btn" onclick="copyAllListing()">Tümünü kopyala</button>
+    <button class="btn-secondary" style="margin-top:6px;" onclick="lReset()">Yeni ürün için sıfırla</button>
+  </div>
+</div>
+
+<!-- PANO -->
+<div class="page" id="page-pano">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:8px;">
+  <div style="font-size:16px;font-weight:500;color:var(--color-text-primary);display:flex;align-items:center;gap:8px;"><span>🦋</span> Morphen Tasarım Panosu</div>
+  <button onclick="panoOpenModal()" style="font-size:12px;padding:6px 14px;border-radius:var(--border-radius-md);cursor:pointer;background:#1D9E75;color:white;border:none;"><i class="ti ti-plus" aria-hidden="true"></i> Yeni tasarım ekle</button>
+</div>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.25rem;">
+  <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px;text-align:center;"><div style="font-size:22px;font-weight:500;color:var(--color-text-primary);" id="ps-toplam">0</div><div style="font-size:11px;color:var(--color-text-secondary);margin-top:2px;">Toplam</div></div>
+  <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px;text-align:center;"><div style="font-size:22px;font-weight:500;color:var(--color-text-primary);" id="ps-hazir">0</div><div style="font-size:11px;color:var(--color-text-secondary);margin-top:2px;">Hazır</div></div>
+  <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px;text-align:center;"><div style="font-size:22px;font-weight:500;color:var(--color-text-primary);" id="ps-bekliyor">0</div><div style="font-size:11px;color:var(--color-text-secondary);margin-top:2px;">Bekliyor</div></div>
+  <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px;text-align:center;"><div style="font-size:22px;font-weight:500;color:var(--color-text-primary);" id="ps-yayinda">0</div><div style="font-size:11px;color:var(--color-text-secondary);margin-top:2px;">Yayında</div></div>
+</div>
+<div style="margin-bottom:1rem;">
+  <input type="text" id="pano-search" placeholder="🔍 Tasarım adı, niş veya tag ara..." oninput="panoSearchHandler(this.value)" style="width:100%;padding:9px 12px;border:0.5px solid #ddd;border-radius:8px;font-size:13px;">
+</div>
+<div style="display:flex;gap:6px;margin-bottom:1rem;flex-wrap:wrap;" id="pano-filters">
+  <button class="filter-btn-p active-p" onclick="panoFilter('hepsi',this)">Hepsi</button>
+  <button class="filter-btn-p" onclick="panoFilter('Hazır',this)">Hazır</button>
+  <button class="filter-btn-p" onclick="panoFilter('Bekliyor',this)">Bekliyor</button>
+  <button class="filter-btn-p" onclick="panoFilter('Yayında',this)">Yayında</button>
+  <button class="filter-btn-p" onclick="panoToggleBulkView()" id="pano-bulk-btn" style="margin-left:auto;">Toplu görünüm</button>
+</div>
+<div id="pano-bulk-view" style="display:none; background:var(--color-background-primary); border:0.5px solid var(--color-border-tertiary); border-radius:var(--border-radius-lg); padding:1rem 1.25rem; margin-bottom:1rem;">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+    <span style="font-size:12px; font-weight:500; color:var(--color-text-secondary); text-transform:uppercase; letter-spacing:0.04em;">Hazır tasarımlar — toplu liste</span>
+    <button onclick="panoCopyBulkView()" style="font-size:12px; padding:5px 12px; border-radius:var(--border-radius-md); cursor:pointer; background:#1D9E75; color:white; border:none;">Tümünü kopyala</button>
+  </div>
+  <div id="pano-bulk-content" style="font-size:12px; line-height:1.8; max-height:400px; overflow-y:auto; font-family:monospace; white-space:pre-wrap; background:var(--color-background-secondary); border-radius:var(--border-radius-md); padding:10px;"></div>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;" id="pano-grid"></div>
+</div>
+
+
+
+<!-- KONUMLANDIRICI -->
+<div class="page" id="page-konum" style="max-width:1100px;">
+
+<div class="kn-container">
+
+  <div class="kn-header">
+    <h1>🦋 Morphen — Tasarım Konumlandırıcı</h1>
+    <p>Tasarımını yükle, t-shirt üzerinde istediğin yere sürükle, boyutlandır, döndür</p>
+  </div>
+
+  <div class="kn-panel" style="margin-bottom:1rem;">
+    <div class="kn-panel-title">Remove.bg API key (arka plan kaldırma için)</div>
+    <div style="display:flex; gap:8px;">
+      <input type="password" id="kn-rmbg-key" placeholder="API key buraya..." style="flex:1; padding:8px 10px; border:0.5px solid #ddd; border-radius:8px; font-size:13px; font-family:monospace;">
+      <button onclick="knSaveRmbgKey()" style="padding:8px 16px; background:#1D9E75; color:white; border:none; border-radius:8px; cursor:pointer; font-size:13px;">Kaydet</button>
+    </div>
+    <div id="kn-rmbg-status" style="font-size:11px; margin-top:6px; color:#888;"></div>
+  </div>
+
+  <div class="kn-layout">
+
+    <!-- LEFT: View + Mockup Upload -->
+    <div class="kn-panel">
+      <div class="kn-panel-title">Mockup fotoğrafı</div>
+      <div class="kn-upload-zone" onclick="document.getElementById('kn-mockup-in').click()" style="margin-bottom:10px;">
+        <div class="kn-ico">🖼️</div>
+        <div class="kn-txt">Mockup yükle</div>
+      </div>
+      <input type="file" id="kn-mockup-in" accept="image/*" onchange="knLoadMockup(this)">
+
+      <div class="kn-panel-title" style="margin-top:1.25rem;">Görünüm sekmeleri</div>
+      <div id="kn-view-buttons"></div>
+      <div style="font-size:11px; color:#aaa; margin-top:8px; line-height:1.5;">Her sekme kendi mockup fotoğrafını ve tasarımını ayrı tutar — örn. Görünüm 1 = ön, Görünüm 2 = arka.</div>
+    </div>
+
+    <!-- CENTER: Canvas -->
+    <div class="kn-canvas-wrap">
+      <div class="kn-shirt-stage" id="kn-shirt-stage" onclick="knStageClickForColor(event)">
+        <div id="kn-mockup-bg" style="position:absolute; top:0; left:0; width:100%; height:100%; background-size:contain; background-position:center; background-repeat:no-repeat; background-color:#fff; border-radius:8px;">
+          <div id="kn-mockup-placeholder" style="display:flex; align-items:center; justify-content:center; height:100%; color:#bbb; font-size:13px; text-align:center; padding:2rem;">Sol panelden mockup fotoğrafı yükle</div>
+        </div>
+        <div id="kn-design-container" style="position:absolute; top:0; left:0; width:100%; height:100%;"></div>
+        <img id="kn-mask-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; object-fit:contain; pointer-events:none; border-radius:8px;" />
+      </div>
+    </div>
+
+    <!-- RIGHT: Upload + Controls + Layers -->
+    <div class="kn-panel">
+      <div class="kn-upload-zone" onclick="document.getElementById('kn-file-in').click()">
+        <div class="kn-ico">📷</div>
+        <div class="kn-txt">Tasarım yükle</div>
+      </div>
+      <input type="file" id="kn-file-in" accept="image/*" multiple onchange="knLoadFiles(this)">
+
+      <div id="kn-controls" style="display:none;">
+        <button class="kn-btn-secondary" onclick="knRemoveSelectedBg()" id="kn-rmbg-btn" style="background:#E1F5EE; color:#085041; border-color:#1D9E75; font-weight:500;">✨ Arka planı kaldır</button>
+        <div class="kn-control-group" style="margin-top:14px;">
+          <div class="kn-control-label"><span>Boyut</span><span id="kn-size-val">100%</span></div>
+          <input type="range" id="kn-size-slider" min="10" max="200" value="100" oninput="knUpdateSize(this.value)">
+        </div>
+        <div class="kn-control-group">
+          <div class="kn-control-label"><span>Döndürme</span><span id="kn-rot-val">0°</span></div>
+          <input type="range" id="kn-rot-slider" min="-180" max="180" value="0" oninput="knUpdateRotation(this.value)">
+        </div>
+        <div class="kn-control-group">
+          <div class="kn-control-label"><span>Saydamlık</span><span id="kn-op-val">100%</span></div>
+          <input type="range" id="kn-op-slider" min="10" max="100" value="100" oninput="knUpdateOpacity(this.value)">
+        </div>
+        <button class="kn-btn-secondary" onclick="knCenterSelected()">↔ Ortala</button>
+        <button class="kn-btn-secondary" onclick="knApplyToAllViews()" style="background:#E6F1FB; color:#0C447C; border-color:#378ADD; font-weight:500;">📋 Tüm görünümlere uygula</button>
+        <button class="kn-btn-secondary" onclick="knDeleteSelected()" style="color:#E24B4A;">🗑 Seçiliyi sil</button>
+      </div>
+
+      <div class="kn-panel-title" style="margin-top:1.25rem;">Katmanlar (bu görünüm)</div>
+      <div class="kn-layer-list" id="kn-layer-list">
+        <div style="font-size:11px; color:#bbb; text-align:center; padding:1rem 0;">Henüz tasarım yok</div>
+      </div>
+
+      <button class="kn-btn-primary" onclick="knExportSnapshot()">📥 Görüntüyü indir</button>
+      <button class="kn-btn-secondary" id="kn-add-all-btn" onclick="knAddAllViewsToPano()" style="background:#E1F5EE; color:#085041; border-color:#1D9E75; font-weight:500;">🦋 Tüm görünümleri Panoya aktar</button>
+      <button class="kn-btn-secondary" onclick="knAddToPano()" style="font-size:11px; color:#aaa;">Sadece bu görünümü ekle</button>
+
+      <div class="kn-panel-title" style="margin-top:1.25rem;">Renk Değiştir</div>
+      <button class="kn-btn-secondary" id="kn-color-mode-btn" onclick="knToggleColorMode()" style="background:#EEEDFE; color:#3C3489; border-color:#7474c1; font-weight:500; margin-top:0;">🎨 Renk Değiştir</button>
+      <div id="kn-recolor-panel" style="display:none; margin-top:8px;">
+        <div style="font-size:11px; color:#888; margin-bottom:8px; line-height:1.5;">Tişörtün üstüne tıkla, o bölge otomatik seçilsin.</div>
+        <div class="kn-control-group">
+          <div class="kn-control-label"><span>Seçim toleransı</span><span id="kn-tol-val">25</span></div>
+          <input type="range" id="kn-tol-slider" min="5" max="60" value="25" oninput="document.getElementById('kn-tol-val').textContent=this.value; knToleranceVal=parseInt(this.value);">
+        </div>
+        <div style="font-size:10px; color:#aaa; margin-top:-4px; margin-bottom:8px; line-height:1.4;">Yüksek tolerans arka planı da seçebilir. Seçim sonrası önizlemede (yeşil alan) sadece tişört kaplıysa devam et, fazlaysa toleransı düşür ve tekrar tıkla.
+        </div>
+        <select id="kn-palette-select" onchange="knRenderSwatches()" style="width:100%; padding:7px 8px; border:0.5px solid #ddd; border-radius:8px; font-size:12px; margin-bottom:8px; background:#fafafa;"></select>
+        <div id="kn-swatch-grid" style="display:grid; grid-template-columns:repeat(6,1fr); gap:6px; margin-bottom:8px;"></div>
+        <button class="kn-btn-secondary" onclick="knResetMockupColor()" style="color:#E24B4A;">↺ Orijinal rengine dön</button>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="kn-tip">Önce mockup fotoğrafı yükle, sonra tasarımı üstüne sürükle. Her sekme kendi fotoğrafını ve tasarımını ayrı tutar. "Tüm görünümlere uygula" ile seçili tasarımı, mockup'ı yüklü olan diğer tüm görünümlere aynı boyut/döndürme/konumda kopyalayabilirsin.</div>
+
+</div>
+
+</div>
+
+<!-- AYARLAR -->
+<div class="page" id="page-ayarlar">
+  <div class="card">
+    <span class="api-label">Anthropic API Key</span>
+    <div class="api-row">
+      <input type="password" class="api-input" id="api-key" placeholder="sk-ant-..." />
+      <button class="api-btn" onclick="saveKey()">Kaydet</button>
+    </div>
+    <div class="api-status" id="api-status"></div>
+    <div style="font-size:11px;color:#E24B4A;margin-top:8px;line-height:1.5;">⚠️ Bu key tarayıcında düz metin olarak saklanır (localStorage). Paylaşılan veya herkese açık bilgisayarlarda kullanma. İşin bittiğinde "Anahtarı sil" ile temizleyebilirsin.</div>
+    <button class="btn-secondary" style="margin-top:8px;color:#E24B4A;border-color:#E24B4A;" onclick="clearKey()">Anahtarı sil</button>
+  </div>
+  <div class="card">
+    <span class="api-label">Veri Yedekleme</span>
+    <div style="font-size:12px;color:#888;margin-bottom:10px;line-height:1.6;">Tasarım Panosu verilerin (kartlar, listing metinleri, notlar) tarayıcında saklanıyor. Tarayıcı geçmişi/cache temizlenirse veya farklı cihaza geçersen bu veriler kaybolur. Düzenli yedek almanı öneririz.</div>
+    <button class="btn-primary" onclick="exportBackup()">📥 Yedek indir (.json)</button>
+    <button class="btn-secondary" onclick="document.getElementById('backup-file-in').click()">📤 Yedekten geri yükle</button>
+    <input type="file" id="backup-file-in" accept=".json" style="display:none" onchange="importBackup(this)">
+  </div>
+  <div class="card" style="font-size:13px; color:#888; line-height:1.8;">
+    <strong style="color:#1a1a1a; display:block; margin-bottom:8px;">Nasıl kullanılır?</strong>
+    <b>Ürün Analizci:</b> Etsy'den gördüğün ürün görselini yükle, tüm analizi otomatik al.<br>
+    <b>Listing Yazıcı:</b> Analiz sonuçlarını kopyalayıp buraya yapıştır, ürün hikayesi + bakım + iade politikası oluştur.<br><br>
+    Her analiz ~$0.002 — $5 kredi ile 2000+ görsel analizi yapabilirsin.
+  </div>
+</div>
+
+<script>
+let ab64 = null, amedia = 'image/jpeg', asonuc = null;
+
+function getKey() { return localStorage.getItem('morphen_api_key') || ''; }
+
+function parseClaudeJSON(rawText) {
+  let t = String(rawText || '').replace(/```json|```/g, '').trim();
+  const firstBrace = t.indexOf('{');
+  const lastBrace = t.lastIndexOf('}');
+  if (firstBrace >= 0 && lastBrace > firstBrace) {
+    t = t.slice(firstBrace, lastBrace + 1);
+  }
+  return JSON.parse(t);
+}
+
+window.onload = () => {
+  panoRender();
+  const k = getKey();
+  if (k) { document.getElementById('api-key').value = k; document.getElementById('api-status').textContent = 'Key kayıtlı ✓'; document.getElementById('api-status').className = 'api-status ok'; }
+};
+
+function saveKey() {
+  const k = document.getElementById('api-key').value.trim();
+  if (!k.startsWith('sk-ant-')) { document.getElementById('api-status').textContent = 'Geçersiz format — "sk-ant-" ile başlamalı'; document.getElementById('api-status').className = 'api-status err'; return; }
+  localStorage.setItem('morphen_api_key', k);
+  document.getElementById('api-status').textContent = 'Key kaydedildi ✓';
+  document.getElementById('api-status').className = 'api-status ok';
+}
+
+function clearKey() {
+  if (!confirm('Anthropic API key tarayıcından silinsin mi? Tekrar kullanmak için yeniden girmen gerekecek.')) return;
+  localStorage.removeItem('morphen_api_key');
+  document.getElementById('api-key').value = '';
+  document.getElementById('api-status').textContent = 'Key silindi.';
+  document.getElementById('api-status').className = 'api-status err';
+}
+
+function exportBackup() {
+  const data = {
+    version: 1,
+    exportDate: new Date().toISOString(),
+    designs: JSON.parse(localStorage.getItem('morphen_designs') || '[]')
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'morphen_yedek_' + new Date().toISOString().slice(0,10) + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function importBackup(input) {
+  if (!input.files[0]) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      const incoming = Array.isArray(data) ? data : data.designs;
+      if (!Array.isArray(incoming)) throw new Error('Bu dosya bir Morphen yedeği değil');
+      const replace = confirm(incoming.length + ' tasarım bulundu.\n\nTAMAM = mevcut verinin üzerine yaz\nİPTAL = mevcut veriyle birleştir (aynı ID varsa yedektekini koru)');
+      if (replace) {
+        panoDesigns = incoming;
+      } else {
+        const existingIds = new Set(panoDesigns.map(d => d.id));
+        incoming.forEach(d => {
+          if (existingIds.has(d.id)) {
+            const idx = panoDesigns.findIndex(x => x.id === d.id);
+            panoDesigns[idx] = d;
+          } else {
+            panoDesigns.push(d);
+          }
+        });
+      }
+      localStorage.setItem('morphen_designs', JSON.stringify(panoDesigns));
+      panoRender();
+      alert('Yedek başarıyla yüklendi! Toplam: ' + panoDesigns.length + ' tasarım.');
+    } catch (err) {
+      alert('Hata: yedek dosyası okunamadı — ' + err.message);
+    }
+  };
+  reader.readAsText(input.files[0]);
+  input.value = '';
+}
+
+
+const panoEmojis = ['🦋','🎨','⭐','🔥','💎','🌟','🎯','✨'];
+let panoDesigns = JSON.parse(localStorage.getItem('morphen_designs') || '[]');
+let panoEditId = null;
+let panoCurrentFilter = 'hepsi';
+let panoSearchQuery = '';
+
+function panoSearchHandler(val) {
+  panoSearchQuery = val.toLowerCase().trim();
+  panoRender();
+}
+
+let panoCurrentImgs = [];
+
+async function panoUploadToCloudinary(input) {
+  if (!input.files[0]) return;
+  if (panoCurrentImgs.length >= 10) { alert('Maksimum 10 görsel ekleyebilirsin.'); return; }
+  const file = input.files[0];
+  const status = document.getElementById('pf-upload-status');
+  status.textContent = 'Yükleniyor...';
+
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('upload_preset', 'morphen_unsigned');
+  formData.append('cloud_name', 'dg1qre4mv');
+
+  try {
+    const res = await fetch('https://api.cloudinary.com/v1_1/dg1qre4mv/image/upload', { method: 'POST', body: formData });
+    const data = await res.json();
+    if (data.secure_url) {
+      panoCurrentImgs.push(data.secure_url);
+      panoRenderImgGrid();
+      status.textContent = panoCurrentImgs.length + ' görsel eklendi';
+      panoSaveDraft();
+      input.value = '';
+    } else {
+      status.textContent = 'Hata: ' + (data.error?.message || 'Yükleme başarısız');
+    }
+  } catch(e) {
+    status.textContent = 'Bağlantı hatası, tekrar dene.';
+  }
+}
+
+function panoRenderImgGrid() {
+  const grid = document.getElementById('pf-img-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  panoCurrentImgs.forEach((url, i) => {
+    grid.innerHTML += `<div style="position:relative;aspect-ratio:1;background:var(--color-background-secondary);border-radius:6px;overflow:hidden;border:0.5px solid var(--color-border-tertiary);">
+      <img src="${url}" style="width:100%;height:100%;object-fit:contain;" />
+      <button onclick="panoRemoveImg(${i})" style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,0.6);color:white;border:none;border-radius:50%;width:18px;height:18px;font-size:11px;cursor:pointer;line-height:1;">✕</button>
+    </div>`;
+  });
+  const remaining = 10 - panoCurrentImgs.length;
+  if (remaining > 0) {
+    grid.innerHTML += `<div onclick="document.getElementById('pf-img-input').click()" style="aspect-ratio:1;background:var(--color-background-secondary);border-radius:6px;border:1.5px dashed var(--color-border-secondary);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:var(--color-text-secondary);">+</div>`;
+  }
+}
+
+function panoRemoveImg(i) {
+  panoCurrentImgs.splice(i, 1);
+  panoRenderImgGrid();
+  document.getElementById('pf-upload-status').textContent = panoCurrentImgs.length + ' görsel';
+}
+
+function panoDelete(id) {
+  const d = panoDesigns.find(x => x.id === id);
+  if (!confirm('"' + (d?.ad || 'Bu tasarımı') + '" silinsin mi? Bu işlem geri alınamaz.')) return;
+  panoDesigns = panoDesigns.filter(x => x.id !== id);
+  localStorage.setItem('morphen_designs', JSON.stringify(panoDesigns));
+  if (panoEditId === id) { panoEditId = null; panoCloseModalDirect(); panoClearDraft(); }
+  panoRender();
+}
+
+function panoDownload(id) {
+  var d = panoDesigns.find(function(x) { return x.id === id; });
+  if (!d) return;
+
+  var imgs = d.imgs || (d.img ? [d.img] : []);
+  var imgHtml = '';
+  for (var i = 0; i < imgs.length; i++) {
+    imgHtml += '<img src="' + imgs[i] + '" style="max-width:220px;max-height:220px;object-fit:contain;margin:4px;border:1px solid #eee;border-radius:6px;" alt="gorsel">';
+  }
+
+  function nl2br(t) {
+    return (t || '-').split(String.fromCharCode(10)).join('<br>');
+  }
+
+  var parts = [];
+  parts.push('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>' + (d.ad || 'Tasarim') + '</title>');
+  parts.push('<style>');
+  parts.push('body{font-family:Arial,Helvetica,sans-serif;margin:2cm;color:#1a1a1a;font-size:13px;}');
+  parts.push('h1{font-size:20px;color:#1D9E75;border-bottom:2px solid #1D9E75;padding-bottom:8px;}');
+  parts.push('h2{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;margin:16px 0 4px;}');
+  parts.push('p{margin:0 0 8px;line-height:1.6;}');
+  parts.push('.sec{border-left:3px solid #1D9E75;padding-left:12px;margin:12px 0;}');
+  parts.push('.imgwrap{display:flex;flex-wrap:wrap;gap:6px;}');
+  parts.push('@media print{body{margin:1cm;}}');
+  parts.push('</style></head><body>');
+  parts.push('<h1>' + (d.ad || 'Isimsiz Tasarim') + '</h1>');
+  parts.push('<p>' + (d.durum || '') + ' &nbsp;|&nbsp; Skor: ' + (d.skor || '-') + ' &nbsp;|&nbsp; ' + (d.tarih || '') + '</p>');
+  if (imgHtml) {
+    parts.push('<h2>Gorseller</h2><div class="imgwrap">' + imgHtml + '</div>');
+  }
+  parts.push('<h2>Nis</h2><p>' + (d.nis || '-') + '</p>');
+  parts.push('<h2>Urun Tipleri</h2><p>' + ((d.urunTipleri && d.urunTipleri.length) ? d.urunTipleri.map(function(u){ return u.marka + (u.model ? ' ' + u.model : ''); }).join(', ') : '-') + '</p>');
+  parts.push('<h2>Etsy Basligi</h2><p>' + (d.baslik || '-') + '</p>');
+  parts.push('<h2>Marka Onerisi</h2><p>' + (d.marka || '-') + '</p>');
+  parts.push('<h2>Fiyat Tavsiyesi</h2><p>' + (d.fiyat || '-') + '</p>');
+  parts.push('<h2>Tagler</h2><p>' + (d.tags || '-') + '</p>');
+  parts.push('<h2>Kategori</h2><p>' + (d.kategori || '-') + '</p>');
+  parts.push('<h2>Varyantlar</h2><p>' + nl2br(d.varyant) + '</p>');
+  parts.push('<h2>Stok</h2><p>' + (d.stok || '-') + '</p>');
+  parts.push('<h2>Uretim Suresi</h2><p>' + (d.uretim || '-') + '</p>');
+  parts.push('<h2>Kargo</h2><p>' + (d.kargo || '-') + '</p>');
+  parts.push('<div class="sec"><h2>Urun Hikayesi</h2><p>' + nl2br(d.hikaye) + '</p></div>');
+  parts.push('<div class="sec"><h2>Bakim Talimatlari</h2><p>' + nl2br(d.bakim) + '</p></div>');
+  parts.push('<div class="sec"><h2>Iade ve Iptal Politikasi</h2><p>' + nl2br(d.iade) + '</p></div>');
+  parts.push('<h2>AI Prompt</h2><p style="font-family:monospace;font-size:11px;background:#f5f5f5;padding:8px;border-radius:6px;">' + (d.prompt || '-') + '</p>');
+  parts.push('<h2>Notlar</h2><p>' + nl2br(d.notlar) + '</p>');
+  parts.push('</body></html>');
+
+  var html = parts.join('');
+  var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = (d.ad || 'tasarim').replace(/[^a-zA-Z0-9_\-]/g, '_') + '.html';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+}
+
+function panoRender() {
+  const grid = document.getElementById('pano-grid');
+  let filtered = panoCurrentFilter === 'hepsi' ? panoDesigns : panoDesigns.filter(d => d.durum === panoCurrentFilter);
+  if (panoSearchQuery) {
+    filtered = filtered.filter(d =>
+      (d.ad||'').toLowerCase().includes(panoSearchQuery) ||
+      (d.nis||'').toLowerCase().includes(panoSearchQuery) ||
+      (d.tags||'').toLowerCase().includes(panoSearchQuery)
+    );
+  }
+  grid.innerHTML = '';
+  if (filtered.length === 0) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--color-text-secondary);font-size:13px;">' + (panoSearchQuery ? 'Aramana uygun tasarım bulunamadı.' : 'Henüz tasarım yok. "Yeni tasarım ekle" ile başla.') + '</div>';
+  } else {
+    filtered.forEach(d => {
+      const idx = panoDesigns.indexOf(d);
+      const emoji = panoEmojis[idx % panoEmojis.length];
+      const sc = d.durum==='Hazır'?'background:#E1F5EE;color:#085041;':d.durum==='Yayında'?'background:#E6F1FB;color:#0C447C;':'background:#FAEEDA;color:#633806;';
+      grid.innerHTML += `<div onclick="panoEdit('${d.id}')" style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;cursor:pointer;">
+        <div style="width:100%;aspect-ratio:1;background:var(--color-background-secondary);display:flex;align-items:center;justify-content:center;font-size:32px;position:relative;overflow:hidden;">${d.img ? `<img src="${d.img}" style="width:100%;height:100%;object-fit:contain;" alt="${d.ad}" />` : emoji}<span style="position:absolute;top:8px;right:8px;font-size:10px;font-weight:500;padding:2px 8px;border-radius:20px;${sc}">${d.durum}</span></div>
+        <div style="padding:10px 12px;"><div style="font-size:13px;font-weight:500;color:var(--color-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${d.ad||'İsimsiz'}</div><div style="font-size:11px;color:var(--color-text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${d.nis||'—'}</div>${(d.urunTipleri&&d.urunTipleri.length)?'<div style="font-size:10px;color:#1D9E75;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+d.urunTipleri.map(function(u){ return u.marka + (u.model ? ' ' + u.model : ''); }).join(', ')+'</div>':''}</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-top:0.5px solid var(--color-border-tertiary);"><span style="font-size:11px;font-weight:500;color:#1D9E75;">${d.skor||'—'}</span><div style="display:flex;gap:4px;"><button onclick="event.stopPropagation();panoDownload('${d.id}')" style="font-size:10px;padding:3px 8px;border-radius:6px;cursor:pointer;background:#E1F5EE;color:#085041;border:none;">İndir</button><button onclick="event.stopPropagation();panoDelete('${d.id}')" style="font-size:10px;padding:3px 8px;border-radius:6px;cursor:pointer;background:#FCEBEB;color:#922B21;border:none;">Sil</button></div><span style="font-size:11px;color:var(--color-text-tertiary);">${d.tarih||''}</span></div>
+      </div>`;
+    });
+  }
+  document.getElementById('ps-toplam').textContent = panoDesigns.length;
+  document.getElementById('ps-hazir').textContent = panoDesigns.filter(d=>d.durum==='Hazır').length;
+  document.getElementById('ps-bekliyor').textContent = panoDesigns.filter(d=>d.durum==='Bekliyor').length;
+  document.getElementById('ps-yayinda').textContent = panoDesigns.filter(d=>d.durum==='Yayında').length;
+  if (panoBulkViewOpen) panoRenderBulkView();
+}
+
+function panoFilter(type, btn) {
+  panoCurrentFilter = type;
+  document.querySelectorAll('.filter-btn-p').forEach(b => { b.classList.remove('active-p'); b.style.background=''; b.style.color=''; b.style.borderColor=''; });
+  btn.classList.add('active-p'); btn.style.background='#1D9E75'; btn.style.color='white'; btn.style.borderColor='#1D9E75';
+  panoRender();
+}
+
+let panoBulkViewOpen = false;
+
+function panoToggleBulkView() {
+  panoBulkViewOpen = !panoBulkViewOpen;
+  const view = document.getElementById('pano-bulk-view');
+  if (panoBulkViewOpen) {
+    view.style.display = 'block';
+    panoRenderBulkView();
+  } else {
+    view.style.display = 'none';
+  }
+}
+
+function panoRenderBulkView() {
+  const readyDesigns = panoDesigns.filter(function(d) { return d.durum === 'Hazır'; });
+  const content = document.getElementById('pano-bulk-content');
+  if (readyDesigns.length === 0) {
+    content.textContent = 'Henüz "Hazır" durumunda tasarım yok.';
+    return;
+  }
+  let lines = [];
+  readyDesigns.forEach(function(d, i) {
+    lines.push('=== ' + (i + 1) + '. ' + (d.ad || 'İsimsiz') + ' ===');
+    lines.push('Etsy Başlığı: ' + (d.baslik || '-'));
+    lines.push('Fiyat: ' + (d.fiyat || '-'));
+    lines.push('Marka: ' + (d.marka || '-'));
+    lines.push('Niş: ' + (d.nis || '-'));
+    lines.push('Tag\'ler: ' + (d.tags || '-'));
+    lines.push('');
+  });
+  content.textContent = lines.join('\n');
+}
+
+function panoCopyBulkView() {
+  const text = document.getElementById('pano-bulk-content').textContent;
+  navigator.clipboard.writeText(text).then(function() {
+    const btn = document.querySelector('[onclick="panoCopyBulkView()"]');
+    const original = btn.textContent;
+    btn.textContent = 'Kopyalandı ✓';
+    setTimeout(function() { btn.textContent = original; }, 2000);
+  });
+}
+
+function panoSaveDraft() {
+  const draft = {
+    ad: document.getElementById('pf-ad').value,
+    nis: document.getElementById('pf-nis').value,
+    durum: document.getElementById('pf-durum').value,
+    skor: document.getElementById('pf-skor').value,
+    baslik: document.getElementById('pf-baslik').value,
+    marka: document.getElementById('pf-marka').value,
+    fiyat: document.getElementById('pf-fiyat').value,
+    prompt: document.getElementById('pf-prompt').value,
+    notlar: document.getElementById('pf-notlar').value,
+    tags: document.getElementById('pf-tags').value,
+    kategori: document.getElementById('pf-kategori').value,
+    varyant: document.getElementById('pf-varyant').value,
+    stok: document.getElementById('pf-stok').value,
+    uretim: document.getElementById('pf-uretim').value,
+    hikaye: document.getElementById('pf-hikaye').value,
+    bakim: document.getElementById('pf-bakim').value,
+    iade: document.getElementById('pf-iade').value,
+    kargo: document.getElementById('pf-kargo').value,
+    imgs: panoCurrentImgs,
+    editId: panoEditId,
+    pt: {
+      bella: document.getElementById('pt-bella').checked,
+      bellaModel: document.getElementById('pt-bella-model').value,
+      cc: document.getElementById('pt-cc').checked,
+      ccModel: document.getElementById('pt-cc-model').value,
+      gildan: document.getElementById('pt-gildan').checked,
+      gildanModel: document.getElementById('pt-gildan-model').value,
+      rabbit: document.getElementById('pt-rabbit').checked,
+      rabbitModel: document.getElementById('pt-rabbit-model').value,
+      nextlevel: document.getElementById('pt-nextlevel').checked,
+      nextlevelModel: document.getElementById('pt-nextlevel-model').value
+    }
+  };
+  localStorage.setItem('morphen_draft', JSON.stringify(draft));
+}
+
+function panoLoadDraft() {
+  const raw = localStorage.getItem('morphen_draft');
+  if (!raw) return false;
+  try {
+    const draft = JSON.parse(raw);
+    document.getElementById('pf-ad').value = draft.ad || '';
+    document.getElementById('pf-nis').value = draft.nis || '';
+    document.getElementById('pf-durum').value = draft.durum || 'Bekliyor';
+    document.getElementById('pf-skor').value = draft.skor || '';
+    document.getElementById('pf-baslik').value = draft.baslik || '';
+    document.getElementById('pf-marka').value = draft.marka || '';
+    document.getElementById('pf-fiyat').value = draft.fiyat || '';
+    document.getElementById('pf-prompt').value = draft.prompt || '';
+    document.getElementById('pf-notlar').value = draft.notlar || '';
+    document.getElementById('pf-tags').value = draft.tags || '';
+    document.getElementById('pf-kategori').value = draft.kategori || '';
+    document.getElementById('pf-varyant').value = draft.varyant || '';
+    document.getElementById('pf-stok').value = draft.stok || '';
+    document.getElementById('pf-uretim').value = draft.uretim || '';
+    document.getElementById('pf-hikaye').value = draft.hikaye || '';
+    document.getElementById('pf-bakim').value = draft.bakim || '';
+    document.getElementById('pf-iade').value = draft.iade || '';
+    document.getElementById('pf-kargo').value = draft.kargo || '';
+    panoCurrentImgs = draft.imgs || [];
+    panoEditId = draft.editId || null;
+    if (draft.pt) {
+      document.getElementById('pt-bella').checked = !!draft.pt.bella;
+      document.getElementById('pt-bella-model').value = draft.pt.bellaModel || '';
+      document.getElementById('pt-cc').checked = !!draft.pt.cc;
+      document.getElementById('pt-cc-model').value = draft.pt.ccModel || '';
+      document.getElementById('pt-gildan').checked = !!draft.pt.gildan;
+      document.getElementById('pt-gildan-model').value = draft.pt.gildanModel || '';
+      document.getElementById('pt-rabbit').checked = !!draft.pt.rabbit;
+      document.getElementById('pt-rabbit-model').value = draft.pt.rabbitModel || '';
+      document.getElementById('pt-nextlevel').checked = !!draft.pt.nextlevel;
+      document.getElementById('pt-nextlevel-model').value = draft.pt.nextlevelModel || '';
+    }
+    panoRenderImgGrid();
+    return true;
+  } catch(e) { return false; }
+}
+
+function panoClearDraft() {
+  localStorage.removeItem('morphen_draft');
+}
+
+function panoOpenModal() {
+  const hasDraft = panoLoadDraft();
+  if (hasDraft) {
+    document.getElementById('pano-modal-title').textContent = panoEditId ? 'Tasarımı düzenle (taslak geri yüklendi)' : 'Yeni tasarım ekle (taslak geri yüklendi)';
+  } else {
+    panoEditId = null;
+    document.getElementById('pano-modal-title').textContent = 'Yeni tasarım ekle';
+    ['pf-ad','pf-nis','pf-baslik','pf-marka','pf-fiyat','pf-prompt','pf-notlar','pf-skor','pf-tags','pf-kategori','pf-varyant','pf-stok','pf-uretim','pf-hikaye','pf-bakim','pf-iade','pf-kargo'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('pf-durum').value = 'Bekliyor';
+    ['pt-bella','pt-cc','pt-gildan','pt-rabbit','pt-nextlevel'].forEach(id => document.getElementById(id).checked = false);
+  ['pt-bella-model','pt-cc-model','pt-gildan-model','pt-rabbit-model','pt-nextlevel-model'].forEach(id => document.getElementById(id).value = '');
+    panoCurrentImgs=[];
+    panoRenderImgGrid();
+  }
+  if(document.getElementById('pf-upload-status')) document.getElementById('pf-upload-status').textContent = panoCurrentImgs.length > 0 ? panoCurrentImgs.length + ' görsel' : '';
+  document.getElementById('pano-modal-delete-btn').style.display = panoEditId ? 'block' : 'none';
+  document.getElementById('pano-modal-bg').style.display = 'flex';
+}
+
+function panoOpenModalFresh() {
+  panoClearDraft();
+  panoEditId = null;
+  document.getElementById('pano-modal-title').textContent = 'Yeni tasarım ekle';
+  ['pf-ad','pf-nis','pf-baslik','pf-marka','pf-fiyat','pf-prompt','pf-notlar','pf-skor','pf-tags','pf-kategori','pf-varyant','pf-stok','pf-uretim','pf-hikaye','pf-bakim','pf-iade','pf-kargo'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('pf-durum').value = 'Bekliyor';
+  ['pt-bella','pt-cc','pt-gildan','pt-rabbit','pt-nextlevel'].forEach(id => document.getElementById(id).checked = false);
+  ['pt-bella-model','pt-cc-model','pt-gildan-model','pt-rabbit-model','pt-nextlevel-model'].forEach(id => document.getElementById(id).value = '');
+  panoCurrentImgs=[];
+  panoRenderImgGrid();
+  if(document.getElementById('pf-upload-status')) document.getElementById('pf-upload-status').textContent='';
+  document.getElementById('pano-modal-delete-btn').style.display = 'none';
+  document.getElementById('pano-modal-bg').style.display = 'flex';
+}
+
+function panoEdit(id) {
+  const d = panoDesigns.find(x => x.id === id);
+  if (!d) return;
+  panoEditId = id;
+  document.getElementById('pano-modal-title').textContent = 'Tasarımı düzenle';
+  document.getElementById('pf-ad').value = d.ad||'';
+  document.getElementById('pf-nis').value = d.nis||'';
+  document.getElementById('pf-durum').value = d.durum||'Bekliyor';
+  const ut = d.urunTipleri||[];
+  function findUT(marka) { return ut.find(function(x) { return x.marka === marka; }); }
+  const utBella = findUT('Bella Canvas');
+  const utCc = findUT('Comfort Colors');
+  const utGildan = findUT('Gildan');
+  const utRabbit = findUT('Rabbit Skins');
+  const utNextlevel = findUT('Next Level');
+  document.getElementById('pt-bella').checked = !!utBella;
+  document.getElementById('pt-bella-model').value = utBella ? utBella.model : '';
+  document.getElementById('pt-cc').checked = !!utCc;
+  document.getElementById('pt-cc-model').value = utCc ? utCc.model : '';
+  document.getElementById('pt-gildan').checked = !!utGildan;
+  document.getElementById('pt-gildan-model').value = utGildan ? utGildan.model : '';
+  document.getElementById('pt-rabbit').checked = !!utRabbit;
+  document.getElementById('pt-rabbit-model').value = utRabbit ? utRabbit.model : '';
+  document.getElementById('pt-nextlevel').checked = !!utNextlevel;
+  document.getElementById('pt-nextlevel-model').value = utNextlevel ? utNextlevel.model : '';
+  document.getElementById('pf-skor').value = d.skor||'';
+  document.getElementById('pf-baslik').value = d.baslik||'';
+  document.getElementById('pf-marka').value = d.marka||'';
+  document.getElementById('pf-fiyat').value = d.fiyat||'';
+  document.getElementById('pf-prompt').value = d.prompt||'';
+  document.getElementById('pf-notlar').value = d.notlar||'';
+  document.getElementById('pf-tags').value = d.tags||'';
+  document.getElementById('pf-kategori').value = d.kategori||'';
+  document.getElementById('pf-varyant').value = d.varyant||'';
+  document.getElementById('pf-stok').value = d.stok||'';
+  document.getElementById('pf-uretim').value = d.uretim||'';
+  document.getElementById('pf-hikaye').value = d.hikaye||'';
+  document.getElementById('pf-bakim').value = d.bakim||'';
+  document.getElementById('pf-iade').value = d.iade||'';
+  document.getElementById('pf-kargo').value = d.kargo||'';
+  panoCurrentImgs = d.imgs||[];
+  panoRenderImgGrid();
+  document.getElementById('pf-upload-status').textContent = panoCurrentImgs.length > 0 ? panoCurrentImgs.length + ' görsel' : '';
+  document.getElementById('pano-modal-delete-btn').style.display = 'block';
+  document.getElementById('pano-modal-bg').style.display = 'flex';
+  panoSaveDraft();
+}
+
+function panoSave() {
+  const urunTipleri = [];
+  if (document.getElementById('pt-bella').checked) urunTipleri.push({marka:'Bella Canvas', model: document.getElementById('pt-bella-model').value.trim()});
+  if (document.getElementById('pt-cc').checked) urunTipleri.push({marka:'Comfort Colors', model: document.getElementById('pt-cc-model').value.trim()});
+  if (document.getElementById('pt-gildan').checked) urunTipleri.push({marka:'Gildan', model: document.getElementById('pt-gildan-model').value.trim()});
+  if (document.getElementById('pt-rabbit').checked) urunTipleri.push({marka:'Rabbit Skins', model: document.getElementById('pt-rabbit-model').value.trim()});
+  if (document.getElementById('pt-nextlevel').checked) urunTipleri.push({marka:'Next Level', model: document.getElementById('pt-nextlevel-model').value.trim()});
+  const d = { id: panoEditId||Date.now().toString(), imgs: [...panoCurrentImgs], img: panoCurrentImgs[0]||null, urunTipleri: urunTipleri, ad: document.getElementById('pf-ad').value.trim(), nis: document.getElementById('pf-nis').value.trim(), durum: document.getElementById('pf-durum').value, skor: document.getElementById('pf-skor').value.trim(), baslik: document.getElementById('pf-baslik').value.trim(), marka: document.getElementById('pf-marka').value.trim(), fiyat: document.getElementById('pf-fiyat').value.trim(), prompt: document.getElementById('pf-prompt').value.trim(), notlar: document.getElementById('pf-notlar').value.trim(), tags: document.getElementById('pf-tags').value.trim(), kategori: document.getElementById('pf-kategori').value.trim(), varyant: document.getElementById('pf-varyant').value.trim(), stok: document.getElementById('pf-stok').value.trim(), uretim: document.getElementById('pf-uretim').value.trim(), hikaye: document.getElementById('pf-hikaye').value.trim(), bakim: document.getElementById('pf-bakim').value.trim(), iade: document.getElementById('pf-iade').value.trim(), kargo: document.getElementById('pf-kargo').value.trim(), tarih: panoEditId ? panoDesigns.find(x=>x.id===panoEditId)?.tarih : new Date().toLocaleDateString('tr-TR') };
+  if (panoEditId) { const idx = panoDesigns.findIndex(x=>x.id===panoEditId); panoDesigns[idx]=d; } else { panoDesigns.unshift(d); }
+  localStorage.setItem('morphen_designs', JSON.stringify(panoDesigns));
+  panoClearDraft();
+  panoCloseModalDirect();
+  panoRender();
+}
+
+function panoCloseModal(e) { if (e.target===document.getElementById('pano-modal-bg')) panoCloseModalDirect(); }
+function panoCloseModalDirect() { document.getElementById('pano-modal-bg').style.display='none'; }
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('page-' + tab).classList.add('active');
+}
+
+function switchTabProgrammatic(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const tabs = document.querySelectorAll('.tab');
+  const tabOrder = ['analizci','listing','pano','konum','ayarlar'];
+  const idx = tabOrder.indexOf(tab);
+  if (idx >= 0 && tabs[idx]) tabs[idx].classList.add('active');
+  document.getElementById('page-' + tab).classList.add('active');
+}
+
+function aEv(e, cls) { e.preventDefault(); document.getElementById('a-zone').className = 'upload-zone ' + cls; }
+function aDrop(e) { e.preventDefault(); document.getElementById('a-zone').className = 'upload-zone'; if (e.dataTransfer.files[0]) aProcess(e.dataTransfer.files[0]); }
+function aLoadFile(i) { if (i.files[0]) aProcess(i.files[0]); }
+function aProcess(file) {
+  amedia = file.type || 'image/jpeg';
+  const r = new FileReader();
+  r.onload = e => {
+    ab64 = e.target.result.split(',')[1];
+    document.getElementById('a-preview-img').src = e.target.result;
+    document.getElementById('a-preview-name').textContent = file.name;
+    document.getElementById('a-upload-card').style.display = 'none';
+    document.getElementById('a-preview').style.display = 'block';
+    document.getElementById('a-result').style.display = 'none';
+    document.getElementById('a-copy').style.display = 'none';
+  };
+  r.readAsDataURL(file);
+}
+
+async function analyze() {
+  const key = getKey();
+  if (!key) { alert('API key bulunamadı — Ayarlar sekmesinden gir.'); return; }
+  document.getElementById('a-preview').style.display = 'none';
+  document.getElementById('a-loading').style.display = 'block';
+  document.getElementById('a-result').style.display = 'none';
+  document.getElementById('a-copy').style.display = 'none';
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 2800,
+        messages: [{ role: 'user', content: [
+          { type: 'image', source: { type: 'base64', media_type: amedia, data: ab64 } },
+          { type: 'text', text: `Bu bir Etsy tişört ürün görseli. Etsy'de ne sattığını bilen, pazar dinamiklerini anlayan biri gibi analiz et.\n\nMorphen'in Rexven'den siparis edebildigi urunler SADECE sunlardir, marka_onerisi alaninda SADECE bu listeden sec, baska marka onerme:\n- Bella Canvas: 100B/134B Baby Bodysuit, 3001B/3413B Baby Tee, 3001T/3413T Toddler Tee, Micro Rib Baby Tee 1010, Micro Rib Cropped Racer Tank 1019, Micro Rib Long Sleeve Baby Tee 1501, Micro Rib Raglan Baby Tee 1201, Micro Rib Spaghetti Strap Tank, Unisex Adult T-Shirt 3001/3001CVC, Women V-Neck 6405/6405CVC, Youth T-Shirt 3001Y/3001YCVC, Youth Tank 3480Y\n- Comfort Colors: ColorBlast T-Shirt 1745, Boxy Tee, Garment-Dyed Heavyweight Tee, Long Sleeve Pocket T-Shirt 4410, Long Sleeve T-Shirt 6014, Sweatshirt 1566, T-Shirt 1717, Youth T-Shirt 9018\n- Gildan: Baby Tee/Youth T-Shirt 5000B, Toddler T-Shirt 5100P, Unisex Hoodie 18500, Unisex Sweatshirt 18000, Unisex T-Shirt 64000, Youth Sweatshirt 18000B, Youth Hoodie 18500B, Youth T-Shirt 64000B\n- Rabbit Skins: Infant Baby Rib Bodysuit 4400, Baby Tee 3322, Toddler Sweatshirt 3317, Toddler T-Shirt 3321, Toddler Tank 3323\n- Next Level: Women's Ideal Crop Top 1580\n\nGörsel ipuçları:\n- Gökkuşağı renkleri → LGBT / Pride nişi — mutlaka yaz\n- Amerikan bayrağı, yıldız, kartal → Patriotic / 4th of July nişi\n- Çiçek, botanik → Floral / Nature lovers nişi\n- Marka logosu taklidi (Nike, Disney vb.) → Parody + telif riski var\n- DNA, bilim sembolleri → Science lovers nişi\n- Evcil hayvan → Pet lovers nişi\n- Noel, kar tanesi → Christmas / Holiday nişi\n- Kalp, çift, evlilik → Romance / Wedding nişi\n- Anne, baba, çocuk → Family / Parenting nişi\n- Birden fazla niş varsa hepsini yaz — çift niş stratejisi çok değerli\n\nMevsimsellik, fiyat ve marka tavsiyesi ver. Sonuçları samimi akıcı Türkçeyle yaz.\n\nSadece JSON ver:\n{"nis":"nişler virgülle","tasarim_stili":"3-5 kelime","kim_alir":"arkadaşına anlatır gibi 1-2 cümle","strateji_notu":"güçlü/zayıf yön samimi","mevsimsellik":"ne zaman zirve, evergreen mi","fiyat_tavsiyesi":"fiyat bandı ve neden","etsy_basligi":"SEO başlık max 140 karakter İngilizce pipe ile","marka_onerisi":"yukarida verilen Morphen urun listesinden SADECE birini sec, tam urun kodu ve modeliyle birlikte yaz (orn: Comfort Colors T-Shirt 1717), kisa gerekce ekle","alternatif_konsept":"aynı niş farklı motif 2-3 fikir","potansiyel_skoru":"1-10 puan ver. Niş rekabeti, mevsimsellik gücü, çift niş, telif riski, evergreen mi faktörlerini değerlendir. Puan + 1-2 cümle gerekçe. Örn: 7/10 — çift niş güçlü ama rekabet yoğun.","tasarim_gelistirme":"Bu tasarıma ne eklenirse veya değiştirilirse daha çok satar? Somut öneriler ver — hangi slogan, hangi element, hangi renk değişikliği skoru yukarı taşır. 2-3 madde, direkt ve uygulanabilir.","ai_prompt":"Bu tasarımın nişi ve stiline uygun, sıfırdan özgün bir tasarım üretmek için AI görsel araçlarında (Midjourney, Canva, Adobe Firefly, DALL-E) kullanılabilecek İngilizce prompt yaz. Detaylı, profesyonel, kopyala-yapıştır hazır olsun. Stil, renk paleti, kompozisyon, mood hepsini dahil et.","ai_prompt_gelistirilmis":"ai_prompt alanindaki promptun gelistirilmis halini yaz. tasarim_gelistirme alanindaki onerileri (slogan, renk, element degisiklikleri) o promptun icine dogal ve akici sekilde yedir, yeni cumleler ekleyerek, celiski yaratmadan. Sonuc tek parca, akici, kopyala-yapistir hazir Ingilizce prompt olsun, madde isareti kullanma.","risk":"telif riski varsa yaz yoksa null"}` }
+        ]}] })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    const s = parseClaudeJSON(data.content.map(i => i.text||'').join(''));
+    asonuc = s;
+    document.getElementById('r-nis').textContent = s.nis;
+    document.getElementById('r-stil').textContent = s.tasarim_stili;
+    document.getElementById('r-kim').textContent = s.kim_alir;
+    document.getElementById('r-strateji').textContent = s.strateji_notu;
+    document.getElementById('r-mevsim').textContent = s.mevsimsellik||'';
+    document.getElementById('r-fiyat').textContent = s.fiyat_tavsiyesi||'';
+    document.getElementById('r-baslik').textContent = s.etsy_basligi||'';
+    document.getElementById('r-marka').textContent = s.marka_onerisi||'';
+    document.getElementById('r-alternatif').textContent = s.alternatif_konsept||'';
+    document.getElementById('r-skor').textContent = s.potansiyel_skoru||'';
+    document.getElementById('r-gelistirme').textContent = s.tasarim_gelistirme||'';
+    document.getElementById('r-aiprompt').textContent = s.ai_prompt||'';
+    document.getElementById('r-aiprompt-gelistirilmis').textContent = s.ai_prompt_gelistirilmis||'';
+    if (s.risk && s.risk!=='null') { document.getElementById('r-risk').textContent = s.risk; document.getElementById('r-risk-row').style.display = 'flex'; } else { document.getElementById('r-risk-row').style.display = 'none'; }
+    const ct = `Niş: ${s.nis}\nTasarım stili: ${s.tasarim_stili}\nKim alır: ${s.kim_alir}\nStrateji notu: ${s.strateji_notu}\nMevsimsellik: ${s.mevsimsellik||''}\nFiyat tavsiyesi: ${s.fiyat_tavsiyesi||''}\nEtsy başlığı: ${s.etsy_basligi||''}\nMarka önerisi: ${s.marka_onerisi||''}\nAlternatif konsept: ${s.alternatif_konsept||''}\nPotansiyel skoru: ${s.potansiyel_skoru||''}
+Tasarım geliştirme: ${s.tasarim_gelistirme||''}
+AI prompt: ${s.ai_prompt||''}
+AI prompt (geliştirilmiş): ${s.ai_prompt_gelistirilmis||''}${s.risk&&s.risk!=='null'?'\nRisk: '+s.risk:''}`;
+    document.getElementById('a-copy-box').textContent = ct;
+    const onerilenMarka = s.marka_onerisi || 'önerilen modeli';
+    document.getElementById('mockup-steps').innerHTML = `1. Printful'u aç → Mockup Generator → <b>${onerilenMarka}</b> seç (Printful'da yoksa en yakın eşleneni seç)<br>2. Renk seç (analiz sonucuna uygun ton — vintage/aged görünüm için soluk tonlar dene)<br>3. Tasarım PNG'ni yükle → pozisyonu ayarla<br>4. Mockup'ı indir → Etsy listing'ine ekle`;
+    document.getElementById('a-loading').style.display = 'none';
+    document.getElementById('a-result').style.display = 'block';
+    document.getElementById('a-copy').style.display = 'block';
+    document.getElementById('mockup-card').style.display = 'block';
+  } catch(e) {
+    document.getElementById('a-loading').style.display = 'none';
+    document.getElementById('a-preview').style.display = 'block';
+    alert('Hata: ' + e.message);
+  }
+}
+
+function aCopyText() {
+  navigator.clipboard.writeText(document.getElementById('a-copy-box').textContent).then(() => {
+    const b = document.getElementById('a-copy-btn');
+    b.textContent = 'Kopyalandı ✓'; b.classList.add('copied');
+    setTimeout(() => { b.textContent = 'Kopyala'; b.classList.remove('copied'); }, 2000);
+  });
+}
+
+function aReset() {
+  ab64 = null; asonuc = null;
+  document.getElementById('a-upload-card').style.display = 'block';
+  document.getElementById('a-preview').style.display = 'none';
+  document.getElementById('a-result').style.display = 'none';
+  document.getElementById('a-copy').style.display = 'none';
+  document.getElementById('a-loading').style.display = 'none';
+  document.getElementById('a-file-in').value = '';
+  document.getElementById('mockup-card').style.display = 'none';
+}
+
+function sendToListing() {
+  try {
+    if (!asonuc) { alert('Önce bir ürün analizi yap.'); return; }
+    let urunAdi = '';
+    if (asonuc.etsy_basligi) {
+      urunAdi = String(asonuc.etsy_basligi).split('|')[0].trim();
+    }
+    const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+    setVal('l-urun', urunAdi);
+    setVal('l-nis', asonuc.nis);
+    setVal('l-hedef', asonuc.kim_alir);
+    setVal('l-stil', asonuc.tasarim_stili);
+    setVal('l-not', asonuc.tasarim_gelistirme);
+
+    const markaSel = document.getElementById('l-marka');
+    const oneri = String(asonuc.marka_onerisi || '').toLowerCase();
+    const oneriDigits = (oneri.match(/\d+/g) || []);
+    if (markaSel && oneri) {
+      let bestIdx = -1, bestScore = 0;
+      for (let i = 0; i < markaSel.options.length; i++) {
+        const optText = markaSel.options[i].textContent.toLowerCase();
+        let score = 0;
+        optText.split(/[\s\/]+/).forEach(word => {
+          if (word.length > 2 && oneri.includes(word)) score += 1;
+        });
+        oneriDigits.forEach(d => { if (optText.includes(d)) score += 3; });
+        if (score > bestScore) { bestScore = score; bestIdx = i; }
+      }
+      if (bestIdx >= 0) markaSel.selectedIndex = bestIdx;
+    }
+
+    switchTabProgrammatic('listing');
+  } catch (err) {
+    alert('Aktarım sırasında hata oluştu: ' + err.message);
+  }
+}
+
+async function generateListing() {
+  const key = getKey();
+  if (!key) { alert('API key bulunamadı — Ayarlar sekmesinden gir.'); return; }
+  const urun = document.getElementById('l-urun').value.trim();
+  const nis = document.getElementById('l-nis').value.trim();
+  if (!urun || !nis) { alert('Ürün adı ve niş zorunlu!'); return; }
+  const marka = document.getElementById('l-marka').value;
+  const hedef = document.getElementById('l-hedef').value.trim();
+  const stil = document.getElementById('l-stil').value.trim();
+  const iptal = document.getElementById('l-iptal').value;
+  const not = document.getElementById('l-not').value.trim();
+  document.getElementById('l-spinner').style.display = 'block';
+  document.getElementById('l-gen-label').style.display = 'none';
+  document.getElementById('l-gen-btn').disabled = true;
+  document.getElementById('l-result').style.display = 'none';
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 2000,
+        messages: [{ role: 'user', content: `Sen Morphen markası için Etsy listing metinleri yazıyorsun. Morphen, dönüşüm temalı bir t-shirt markası — kelebek logosu var, minimal ve zarif estetik.\n\nÜrün: ${urun}\nMarka: ${marka}\nNiş: ${nis}\nHedef: ${hedef||'belirtilmedi'}\nStil: ${stil||'belirtilmedi'}\nİptal: ${iptal} saat\n${not?'Not: '+not:''}\n\nTürkçe ve İngilizce (önce TR, sonra --- sonra EN). Samimi, sıcak, Morphen tonu.\n\nSadece JSON:\n{"hikaye":"ürün hikayesi TR --- EN","bakim":"bakım talimatları TR --- EN","iade":"iptal iade politikası TR --- EN"}` }] })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    const r = parseClaudeJSON(data.content.map(i=>i.text||'').join(''));
+    document.getElementById('l-hikaye').textContent = r.hikaye;
+    document.getElementById('l-bakim').textContent = r.bakim;
+    document.getElementById('l-iade').textContent = r.iade;
+    document.getElementById('l-result').style.display = 'block';
+    document.getElementById('l-form-card').style.display = 'none';
+  } catch(e) { alert('Hata: ' + e.message); }
+  finally {
+    document.getElementById('l-spinner').style.display = 'none';
+    document.getElementById('l-gen-label').style.display = 'inline';
+    document.getElementById('l-gen-btn').disabled = false;
+  }
+}
+
+function copyBlock(id, btnId) {
+  const el = event.target.closest('button');
+  navigator.clipboard.writeText(document.getElementById(id).textContent).then(() => {
+    el.textContent = 'Kopyalandı ✓'; el.classList.add('copied');
+    setTimeout(() => { el.textContent = 'Kopyala'; el.classList.remove('copied'); }, 2000);
+  });
+}
+
+function copyAllListing() {
+  const all = `=== ÜRÜN HİKAYESİ ===\n${document.getElementById('l-hikaye').textContent}\n\n=== BAKIM TALİMATLARI ===\n${document.getElementById('l-bakim').textContent}\n\n=== İPTAL & İADE POLİTİKASI ===\n${document.getElementById('l-iade').textContent}`;
+  const btn = event.target.closest('button');
+  navigator.clipboard.writeText(all).then(() => { btn.textContent = 'Tümü kopyalandı ✓'; setTimeout(() => { btn.textContent = 'Tümünü kopyala'; }, 2000); });
+}
+
+function lReset() {
+  document.getElementById('l-form-card').style.display = 'block';
+  document.getElementById('l-result').style.display = 'none';
+}
+
+
+
+let knCurrentView = 'view1';
+let knSelectedLayerId = null;
+let knLayerCounter = 0;
+
+const KN_VIEW_COUNT = 10;
+const KN_VIEW_KEYS = Array.from({length: KN_VIEW_COUNT}, (_, i) => 'view' + (i + 1));
+const knLayers = {};
+const knMockups = {};
+KN_VIEW_KEYS.forEach(k => { knLayers[k] = []; knMockups[k] = null; });
+const knViewLabels = {};
+KN_VIEW_KEYS.forEach((k, i) => { knViewLabels[k] = 'Görünüm ' + (i + 1); });
+
+function knRenderViewButtons() {
+  const container = document.getElementById('kn-view-buttons');
+  container.innerHTML = KN_VIEW_KEYS.map((k, i) =>
+    '<button class="kn-view-btn' + (i===0?' active':'') + '" data-view="' + k + '" onclick="knSwitchView(\'' + k + '\', this)">📷 Görünüm ' + (i+1) + '</button>'
+  ).join('');
+}
+knRenderViewButtons();
+
+function knLoadMockup(input) {
+  if (!input.files[0]) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    knMockups[knCurrentView] = e.target.result;
+    knOriginalMockups[knCurrentView] = e.target.result;
+    knCurrentMaskImg = null;
+    const overlay = document.getElementById('kn-mask-overlay');
+    if (overlay) overlay.style.display = 'none';
+    knRenderMockupBg();
+  };
+  reader.readAsDataURL(input.files[0]);
+  input.value = '';
+}
+
+function knRenderMockupBg() {
+  const bg = document.getElementById('kn-mockup-bg');
+  const placeholder = document.getElementById('kn-mockup-placeholder');
+  if (knMockups[knCurrentView]) {
+    bg.style.backgroundImage = 'url(' + knMockups[knCurrentView] + ')';
+    placeholder.style.display = 'none';
+  } else {
+    bg.style.backgroundImage = 'none';
+    placeholder.style.display = 'flex';
+  }
+}
+
+function knSwitchView(view, btn) {
+  knCurrentView = view;
+  document.querySelectorAll('.kn-view-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  knCurrentMaskImg = null;
+  const overlay = document.getElementById('kn-mask-overlay');
+  if (overlay) overlay.style.display = 'none';
+  knRenderMockupBg();
+  knRenderLayers();
+  knSelectLayer(null);
+}
+
+function knLoadFiles(input) {
+  const files = Array.from(input.files);
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      knAddLayer(e.target.result, file.name);
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value = '';
+}
+
+function knAddLayer(src, name) {
+  const img = new Image();
+  img.onload = () => {
+    const id = 'kn_layer_' + (++knLayerCounter);
+    const naturalRatio = img.naturalWidth / img.naturalHeight;
+    const maxDim = 200;
+    let w, h;
+    if (naturalRatio >= 1) {
+      w = maxDim;
+      h = maxDim / naturalRatio;
+    } else {
+      h = maxDim;
+      w = maxDim * naturalRatio;
+    }
+    const layer = {
+      id, src, name: name || 'Tasarım',
+      x: (420 - w) / 2, y: (520 - h) / 2, w, h, rotation: 0, opacity: 100
+    };
+    knLayers[knCurrentView].push(layer);
+    knRenderLayers();
+    knSelectLayer(id);
+  };
+  img.src = src;
+}
+
+function knRenderLayers() {
+  const container = document.getElementById('kn-design-container');
+  container.innerHTML = '';
+  knLayers[knCurrentView].forEach(layer => {
+    const div = document.createElement('div');
+    div.className = 'kn-design-layer' + (layer.id === knSelectedLayerId ? ' selected' : '');
+    div.id = layer.id;
+    div.style.left = layer.x + 'px';
+    div.style.top = layer.y + 'px';
+    div.style.width = layer.w + 'px';
+    div.style.height = layer.h + 'px';
+    div.style.transform = 'rotate(' + layer.rotation + 'deg)';
+    div.style.opacity = layer.opacity / 100;
+
+    const innerImg = document.createElement('img');
+    innerImg.src = layer.src;
+    innerImg.alt = layer.name;
+    div.appendChild(innerImg);
+
+    if (layer.id === knSelectedLayerId) {
+      const resizeHandle = document.createElement('div');
+      resizeHandle.className = 'kn-resize-handle';
+      resizeHandle.onmousedown = (e) => knStartResize(e, layer.id);
+      div.appendChild(resizeHandle);
+
+      const rotateHandle = document.createElement('div');
+      rotateHandle.className = 'kn-rotate-handle';
+      rotateHandle.onmousedown = (e) => knStartRotate(e, layer.id);
+      div.appendChild(rotateHandle);
+    }
+
+    div.onmousedown = (e) => {
+      if (e.target.classList.contains('kn-resize-handle') || e.target.classList.contains('kn-rotate-handle')) return;
+      knSelectLayer(layer.id);
+      knStartDrag(e, layer.id);
+    };
+
+    container.appendChild(div);
+  });
+
+  knRenderLayerList();
+}
+
+function knRenderLayerList() {
+  const list = document.getElementById('kn-layer-list');
+  const viewLayers = knLayers[knCurrentView];
+  if (viewLayers.length === 0) {
+    list.innerHTML = '<div style="font-size:11px; color:#bbb; text-align:center; padding:1rem 0;">Henüz tasarım yok</div>';
+    return;
+  }
+  list.innerHTML = viewLayers.map(l => {
+    const activeClass = l.id === knSelectedLayerId ? ' active' : '';
+    return '<div class="kn-layer-item' + activeClass + '" onclick="knSelectLayer(\'' + l.id + '\')">' +
+      '<img class="kn-thumb" src="' + l.src + '" alt="" />' +
+      '<span class="kn-name">' + l.name + '</span>' +
+      '<span class="kn-del" onclick="event.stopPropagation(); knRemoveLayer(\'' + l.id + '\')">✕</span>' +
+      '</div>';
+  }).join('');
+}
+
+function knSelectLayer(id) {
+  knSelectedLayerId = id;
+  knRenderLayers();
+  const controls = document.getElementById('kn-controls');
+  if (id) {
+    const layer = knLayers[knCurrentView].find(l => l.id === id);
+    controls.style.display = 'block';
+    document.getElementById('kn-size-slider').value = (layer.w / 160) * 100;
+    document.getElementById('kn-size-val').textContent = Math.round((layer.w / 160) * 100) + '%';
+    document.getElementById('kn-rot-slider').value = layer.rotation;
+    document.getElementById('kn-rot-val').textContent = Math.round(layer.rotation) + '°';
+    document.getElementById('kn-op-slider').value = layer.opacity;
+    document.getElementById('kn-op-val').textContent = Math.round(layer.opacity) + '%';
+  } else {
+    controls.style.display = 'none';
+  }
+}
+
+function knRemoveLayer(id) {
+  knLayers[knCurrentView] = knLayers[knCurrentView].filter(l => l.id !== id);
+  if (knSelectedLayerId === id) knSelectedLayerId = null;
+  knRenderLayers();
+}
+
+function knDeleteSelected() {
+  if (knSelectedLayerId) knRemoveLayer(knSelectedLayerId);
+}
+
+function knCenterSelected() {
+  if (!knSelectedLayerId) return;
+  const layer = knLayers[knCurrentView].find(l => l.id === knSelectedLayerId);
+  layer.x = (420 - layer.w) / 2;
+  layer.y = (520 - layer.h) / 2;
+  knRenderLayers();
+}
+
+function knApplyToAllViews() {
+  if (!knSelectedLayerId) { alert('Önce bir tasarım seç.'); return; }
+  const sourceLayer = knLayers[knCurrentView].find(l => l.id === knSelectedLayerId);
+  if (!sourceLayer) return;
+  let count = 0;
+  KN_VIEW_KEYS.forEach(viewKey => {
+    if (viewKey === knCurrentView) return;
+    if (!knMockups[viewKey]) return;
+    const id = 'kn_layer_' + (++knLayerCounter);
+    knLayers[viewKey].push({
+      id,
+      src: sourceLayer.src,
+      name: sourceLayer.name,
+      x: sourceLayer.x,
+      y: sourceLayer.y,
+      w: sourceLayer.w,
+      h: sourceLayer.h,
+      rotation: sourceLayer.rotation,
+      opacity: sourceLayer.opacity
+    });
+    count++;
+  });
+  if (count === 0) {
+    alert('Uygulanacak görünüm bulunamadı — önce diğer görünümlere mockup fotoğrafı yükle.');
+  } else {
+    alert(count + ' görünüme uygulandı. Her görünümü kontrol edip gerekirse küçük ayarlar yapabilirsin.');
+    knRenderLayers();
+  }
+}
+
+function knUpdateSize(val) {
+  if (!knSelectedLayerId) return;
+  const layer = knLayers[knCurrentView].find(l => l.id === knSelectedLayerId);
+  const ratio = layer.h / layer.w;
+  layer.w = (val / 100) * 160;
+  layer.h = layer.w * ratio;
+  document.getElementById('kn-size-val').textContent = val + '%';
+  knRenderLayers();
+}
+
+function knUpdateRotation(val) {
+  if (!knSelectedLayerId) return;
+  const layer = knLayers[knCurrentView].find(l => l.id === knSelectedLayerId);
+  layer.rotation = parseFloat(val);
+  document.getElementById('kn-rot-val').textContent = Math.round(val) + '°';
+  knRenderLayers();
+}
+
+function knUpdateOpacity(val) {
+  if (!knSelectedLayerId) return;
+  const layer = knLayers[knCurrentView].find(l => l.id === knSelectedLayerId);
+  layer.opacity = parseFloat(val);
+  document.getElementById('kn-op-val').textContent = Math.round(val) + '%';
+  knRenderLayers();
+}
+
+let knDragState = null;
+function knStartDrag(e, id) {
+  e.preventDefault();
+  const layer = knLayers[knCurrentView].find(l => l.id === id);
+  knDragState = { id, startX: e.clientX, startY: e.clientY, origX: layer.x, origY: layer.y };
+  document.onmousemove = knOnDrag;
+  document.onmouseup = knStopDrag;
+}
+function knOnDrag(e) {
+  if (!knDragState) return;
+  const layer = knLayers[knCurrentView].find(l => l.id === knDragState.id);
+  const dx = e.clientX - knDragState.startX;
+  const dy = e.clientY - knDragState.startY;
+  layer.x = knDragState.origX + dx;
+  layer.y = knDragState.origY + dy;
+  knRenderLayers();
+}
+function knStopDrag() {
+  knDragState = null;
+  document.onmousemove = null;
+  document.onmouseup = null;
+}
+
+let knResizeState = null;
+function knStartResize(e, id) {
+  e.preventDefault();
+  e.stopPropagation();
+  const layer = knLayers[knCurrentView].find(l => l.id === id);
+  knResizeState = { id, startX: e.clientX, startY: e.clientY, origW: layer.w, origH: layer.h };
+  document.onmousemove = knOnResize;
+  document.onmouseup = knStopResize;
+}
+function knOnResize(e) {
+  if (!knResizeState) return;
+  const layer = knLayers[knCurrentView].find(l => l.id === knResizeState.id);
+  const dx = e.clientX - knResizeState.startX;
+  const ratio = knResizeState.origH / knResizeState.origW;
+  layer.w = Math.max(20, knResizeState.origW + dx);
+  layer.h = layer.w * ratio;
+  knRenderLayers();
+  if (layer.id === knSelectedLayerId) {
+    document.getElementById('kn-size-slider').value = (layer.w / 160) * 100;
+    document.getElementById('kn-size-val').textContent = Math.round((layer.w / 160) * 100) + '%';
+  }
+}
+function knStopResize() {
+  knResizeState = null;
+  document.onmousemove = null;
+  document.onmouseup = null;
+}
+
+let knRotateState = null;
+function knStartRotate(e, id) {
+  e.preventDefault();
+  e.stopPropagation();
+  const layer = knLayers[knCurrentView].find(l => l.id === id);
+  const centerX = layer.x + layer.w / 2;
+  const centerY = layer.y + layer.h / 2;
+  knRotateState = { id, centerX, centerY, origRotation: layer.rotation };
+  document.onmousemove = knOnRotate;
+  document.onmouseup = knStopRotate;
+}
+function knOnRotate(e) {
+  if (!knRotateState) return;
+  const stage = document.getElementById('kn-shirt-stage').getBoundingClientRect();
+  const layer = knLayers[knCurrentView].find(l => l.id === knRotateState.id);
+  const mouseX = e.clientX - stage.left;
+  const mouseY = e.clientY - stage.top;
+  const angle = Math.atan2(mouseY - knRotateState.centerY, mouseX - knRotateState.centerX) * 180 / Math.PI;
+  layer.rotation = angle + 90;
+  knRenderLayers();
+  if (layer.id === knSelectedLayerId) {
+    document.getElementById('kn-rot-slider').value = layer.rotation;
+    document.getElementById('kn-rot-val').textContent = Math.round(layer.rotation) + '°';
+  }
+}
+function knStopRotate() {
+  knRotateState = null;
+  document.onmousemove = null;
+  document.onmouseup = null;
+}
+
+function knExportSnapshot() {
+  if (!knMockups[knCurrentView]) {
+    alert('Önce bu görünüm için bir mockup fotoğrafı yükle.');
+    return;
+  }
+
+  const canvas = document.createElement('canvas');
+  const scale = 2;
+  canvas.width = 420 * scale;
+  canvas.height = 520 * scale;
+  const ctx = canvas.getContext('2d');
+
+  const bgImg = new Image();
+  bgImg.onload = () => {
+    ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
+
+    const viewLayers = knLayers[knCurrentView];
+    let loaded = 0;
+    if (viewLayers.length === 0) {
+      knFinishExport(canvas);
+      return;
+    }
+    viewLayers.forEach(layer => {
+      const img = new Image();
+      img.onload = () => {
+        ctx.save();
+        const cx = (layer.x + layer.w / 2) * scale;
+        const cy = (layer.y + layer.h / 2) * scale;
+        ctx.translate(cx, cy);
+        ctx.rotate(layer.rotation * Math.PI / 180);
+        ctx.globalAlpha = layer.opacity / 100;
+        ctx.drawImage(img, -(layer.w * scale) / 2, -(layer.h * scale) / 2, layer.w * scale, layer.h * scale);
+        ctx.restore();
+        loaded++;
+        if (loaded === viewLayers.length) knFinishExport(canvas);
+      };
+      img.src = layer.src;
+    });
+  };
+  bgImg.src = knMockups[knCurrentView];
+}
+
+function knFinishExport(canvas) {
+  const link = document.createElement('a');
+  link.download = 'morphen_' + knCurrentView + '_' + Date.now() + '.png';
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+
+function knBuildCanvasForView(viewKey) {
+  return new Promise((resolve, reject) => {
+    if (!knMockups[viewKey]) { resolve(null); return; }
+    const canvas = document.createElement('canvas');
+    const scale = 2;
+    canvas.width = 420 * scale;
+    canvas.height = 520 * scale;
+    const ctx = canvas.getContext('2d');
+
+    const bgImg = new Image();
+    bgImg.onload = () => {
+      ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
+      const viewLayers = knLayers[viewKey] || [];
+      let loaded = 0;
+      if (viewLayers.length === 0) { resolve(canvas); return; }
+      viewLayers.forEach(layer => {
+        const img = new Image();
+        img.onload = () => {
+          ctx.save();
+          const cx = (layer.x + layer.w / 2) * scale;
+          const cy = (layer.y + layer.h / 2) * scale;
+          ctx.translate(cx, cy);
+          ctx.rotate(layer.rotation * Math.PI / 180);
+          ctx.globalAlpha = layer.opacity / 100;
+          ctx.drawImage(img, -(layer.w * scale) / 2, -(layer.h * scale) / 2, layer.w * scale, layer.h * scale);
+          ctx.restore();
+          loaded++;
+          if (loaded === viewLayers.length) resolve(canvas);
+        };
+        img.onerror = () => { loaded++; if (loaded === viewLayers.length) resolve(canvas); };
+        img.src = layer.src;
+      });
+    };
+    bgImg.onerror = () => reject(new Error('Mockup görseli yüklenemedi'));
+    bgImg.src = knMockups[viewKey];
+  });
+}
+
+function knBuildCanvas(callback) {
+  knBuildCanvasForView(knCurrentView).then(canvas => {
+    if (!canvas) { alert('Önce bu görünüm için bir mockup fotoğrafı yükle.'); return; }
+    callback(canvas);
+  });
+}
+
+async function knUploadCanvasToCloudinary(canvas) {
+  const dataUrl = canvas.toDataURL('image/png');
+  const blob = knDataUrlToBlob(dataUrl);
+  const formData = new FormData();
+  formData.append('file', blob, 'morphen_pano.png');
+  formData.append('upload_preset', 'morphen_unsigned');
+  formData.append('cloud_name', 'dg1qre4mv');
+  const res = await fetch('https://api.cloudinary.com/v1_1/dg1qre4mv/image/upload', { method: 'POST', body: formData });
+  const data = await res.json();
+  if (data.secure_url) return data.secure_url;
+  throw new Error(data.error ? data.error.message : 'Cloudinary yükleme hatası');
+}
+
+async function knAddAllViewsToPano() {
+  const viewsWithMockup = KN_VIEW_KEYS.filter(v => knMockups[v]);
+  if (viewsWithMockup.length === 0) {
+    alert('Hiçbir görünüme mockup yüklenmemiş. Önce en az bir görünümü tamamla.');
+    return;
+  }
+  const btn = document.getElementById('kn-add-all-btn');
+  const originalText = btn ? btn.textContent : '';
+  if (btn) { btn.textContent = 'Yükleniyor... (0/' + viewsWithMockup.length + ')'; btn.disabled = true; }
+
+  const urls = [];
+  for (let i = 0; i < viewsWithMockup.length; i++) {
+    try {
+      const canvas = await knBuildCanvasForView(viewsWithMockup[i]);
+      if (canvas) {
+        const url = await knUploadCanvasToCloudinary(canvas);
+        urls.push(url);
+      }
+    } catch (err) {
+      console.error('Görünüm yüklenemedi:', viewsWithMockup[i], err.message);
+    }
+    if (btn) btn.textContent = 'Yükleniyor... (' + (i + 1) + '/' + viewsWithMockup.length + ')';
+  }
+
+  if (btn) { btn.textContent = originalText; btn.disabled = false; }
+
+  if (urls.length === 0) {
+    alert('Hiçbir görsel yüklenemedi, bağlantını kontrol et.');
+    return;
+  }
+
+  const newCard = {
+    id: Date.now().toString(),
+    imgs: urls,
+    img: urls[0],
+    urunTipleri: [],
+    ad: '', nis: '', durum: 'Bekliyor',
+    skor: '', baslik: '', marka: '', fiyat: '', prompt: '', notlar: '',
+    tags: '', kategori: '', varyant: '', stok: '', uretim: '',
+    hikaye: '', bakim: '', iade: '', kargo: '',
+    tarih: new Date().toLocaleDateString('tr-TR')
+  };
+  panoDesigns.unshift(newCard);
+  localStorage.setItem('morphen_designs', JSON.stringify(panoDesigns));
+  alert(urls.length + ' görünüm tek bir tasarım kartında birleştirildi! Tasarım Panosu\'na geçip bilgileri doldurabilirsin.');
+}
+
+async function knAddToPano() {
+  knBuildCanvas(async (canvas) => {
+    try {
+      const url = await knUploadCanvasToCloudinary(canvas);
+      const newCard = {
+        id: Date.now().toString(),
+        imgs: [url],
+        img: url,
+        urunTipleri: [],
+        ad: '', nis: '', durum: 'Bekliyor',
+        skor: '', baslik: '', marka: '', fiyat: '', prompt: '', notlar: '',
+        tags: '', kategori: '', varyant: '', stok: '', uretim: '',
+        hikaye: '', bakim: '', iade: '', kargo: '',
+        tarih: new Date().toLocaleDateString('tr-TR')
+      };
+      panoDesigns.unshift(newCard);
+      localStorage.setItem('morphen_designs', JSON.stringify(panoDesigns));
+      alert('Yeni kart oluşturuldu! Tasarım Panosu sekmesine geçip bilgileri doldurabilirsin.');
+    } catch (err) {
+      alert('Hata: ' + err.message);
+    }
+  });
+}
+
+function knGetRmbgKey() {
+  return localStorage.getItem('morphen_rmbg_key') || '';
+}
+
+function knSaveRmbgKey() {
+  const key = document.getElementById('kn-rmbg-key').value.trim();
+  if (!key) { document.getElementById('kn-rmbg-status').textContent = 'Key boş olamaz'; return; }
+  localStorage.setItem('morphen_rmbg_key', key);
+  document.getElementById('kn-rmbg-status').textContent = 'Key kaydedildi ✓';
+  document.getElementById('kn-rmbg-status').style.color = '#1D9E75';
+}
+
+window.addEventListener('load', () => {
+  const saved = knGetRmbgKey();
+  const keyInput = document.getElementById('kn-rmbg-key');
+  if (saved && keyInput) {
+    keyInput.value = saved;
+    document.getElementById('kn-rmbg-status').textContent = 'Key kayıtlı ✓';
+    document.getElementById('kn-rmbg-status').style.color = '#1D9E75';
+  }
+});
+
+function knDataUrlToBlob(dataUrl) {
+  const arr = dataUrl.split(',');
+  const mimeMatch = arr[0].match(/:(.*?);/);
+  const mime = mimeMatch ? mimeMatch[1] : 'image/png';
+  const bstr = atob(arr[1]);
+  let n = bstr.length;
+  const u8arr = new Uint8Array(n);
+  while (n--) { u8arr[n] = bstr.charCodeAt(n); }
+  return new Blob([u8arr], { type: mime });
+}
+
+async function knRemoveSelectedBg() {
+  if (!knSelectedLayerId) { alert('Önce bir tasarım seç.'); return; }
+  const key = knGetRmbgKey();
+  if (!key) { alert('Önce yukarıdan remove.bg API key girip kaydet.'); return; }
+
+  const btn = document.getElementById('kn-rmbg-btn');
+  const originalText = btn.textContent;
+  btn.textContent = 'İşleniyor...';
+  btn.disabled = true;
+
+  const layer = knLayers[knCurrentView].find(l => l.id === knSelectedLayerId);
+
+  try {
+    const blob = knDataUrlToBlob(layer.src);
+    const formData = new FormData();
+    formData.append('image_file', blob, 'image.png');
+    formData.append('size', 'auto');
+
+    const res = await fetch('https://api.remove.bg/v1.0/removebg', {
+      method: 'POST',
+      headers: { 'X-Api-Key': key },
+      body: formData
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error('API hatası: ' + res.status + ' — ' + errText.slice(0, 100));
+    }
+
+    const resultBlob = await res.blob();
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      layer.src = e.target.result;
+      knRenderLayers();
+      btn.textContent = originalText;
+      btn.disabled = false;
+    };
+    reader.readAsDataURL(resultBlob);
+
+  } catch (err) {
+    alert('Hata: ' + err.message);
+    btn.textContent = originalText;
+    btn.disabled = false;
+  }
+}
+
+/* ===================== RENK DEĞİŞTİR (Color Recolor) ===================== */
+
+const colorPalettes = {
+  "Comfort Colors 1717": {"Black":"25282a","White":"ffffff","Pepper":"4e4b48","Seafoam":"487a7b","Blue Jean":"647692","Butter":"f5e1a4","Violet":"7474c1","True Navy":"041e43","Red":"c8102e","Chalky Mint":"5cb8b2","Espresso":"553c36","Ice Blue":"5b7f95","Ivory":"e7ceb5","Grey":"716e6a","Blue Spruce":"3e5d58","Moss":"22372b","Mustard":"f2cd00","Flo Blue":"5576d1","Watermelon":"f4364c","Light Green":"5c7f71","Sage":"3e4827","Orchid":"c7b2de","Yam":"be531c","Crimson":"a4123f","Denim":"425563","Crunchberry":"ef4a81","Chambray":"bdd6e6","Blossom":"f8bed6","Berry":"7e4966"},
+  "Comfort Colors 1745 Colorblast": {"Amethyst":"9595d2","Citrine":"f4da40","Clay":"a60a3d","Fern":"445a3e","Ocean":"6e80a9","Smoke":"8c8985"},
+  "Comfort Colors Boxy Tee": {"White":"ffffff","Ivory":"e7ceb5","Pepper":"4e4b48","Black":"25282a","Orchid":"c7b2de","Chalky Mint":"5cb8b2","Chambray":"bdd6e6","Butter":"f5e1a4"},
+  "Comfort Colors Tank Top 9360": {"Blossom":"f8bed6","Blue Jean":"647692","Blue Spruce":"3e5d58","Bright Salmon":"ff6d6a","Butter":"f5e1a4","Violet":"7474c1","White":"ffffff","Watermelon":"f4364c","Pepper":"4e4b48","Seafoam":"487a7b","Ivory":"e7ceb5","Flo Blue":"5576d1","Chambray":"bdd6e6","Black":"25282a"},
+  "Comfort Colors Long Sleeve Pocket 4410": {"Violet":"7474c1","White":"ffffff","Black":"25282a","Pepper":"4e4b48","Seafoam":"487a7b","Brick":"8a1538"},
+  "Comfort Colors Long Sleeve 6014": {"Yam":"be531c","White":"ffffff","Black":"25282a","Pepper":"4e4b48","Seafoam":"487a7b","Ivory":"e7ceb5","Blue Jean":"647692","Violet":"7474c1","Sandstone":"a69f88","Espresso":"553c36","Brick":"8a1538"},
+  "Comfort Colors Sweatshirt 1566": {"Violet":"7474c1","White":"ffffff","Blue Jean":"647692","Pepper":"4e4b48","Seafoam":"487a7b","Crimson":"a4123f"},
+  "Comfort Colors Youth 9018": {"Black":"25282a","White":"ffffff","Blue Jean":"647692","Pepper":"4e4b48","Violet":"7474c1","Orchid":"c7b2de","Seafoam":"487a7b","Blossom":"f8bed6","Chalky Mint":"5cb8b2","Grey":"716e6a","Melon":"fa9370"},
+
+  "Bella Canvas Unisex Adult 3001": {"Black":"211e16","Burnt Orange":"cb6015","Kelly":"007a53","Evergreen":"115740","Light Blue":"a6bbc8","Navy":"1f2a44","White":"f4f5f0","Asphalt":"6c6864","Red":"e10600","Dark Grey Heather":"525657","Soft Cream":"decb99","Yellow":"fcea76","Ash":"edf1ff","Orange":"ff6a39","Dusty Blue":"9bb2a2","Mauve":"a36d6a","Citron":"dde3d5","Peach":"f3be8d","Gold":"ffa300","Maroon":"672e45","Pink":"f7ced7","Mint":"a0dab3","Natural":"dfd1a7","Forest":"183028","Mustard":"c6973f","Rust":"9e483f","Military Green":"60705e","Autumn":"9c5331","Lilac":"d1acce","Heather Tan":"b8b298","Heathered Blue Lagoon":"86a1a9","Athletic Heather":"acb1a6","Heather Yellow Gold":"fdd26e"},
+  "Bella Canvas Baby Bodysuit 100B/134B": {"Yellow":"fcea76","Mauve Triblend":"a36d6a","Peach Triblend":"f3be8d","Ice Blue Triblend":"a6bbc8","Pink":"f7ced7"},
+  "Bella Canvas Baby Tee 3001B/3413B": {"Mauve Triblend":"a36d6a","Peach Triblend":"f3be8d","Ice Blue Triblend":"a6bbc8","Heather Maroon":"5b2b42","Pink":"f7ced7","Dark Grey Heather":"525657","Yellow":"fcea76"},
+  "Bella Canvas Toddler Tee 3001T/3413T": {"Mauve Triblend":"a36d6a","Peach Triblend":"f3be8d","Ice Blue Triblend":"a6bbc8","Maroon":"672e45","Pink":"f7ced7","Dark Grey Heather":"525657","Yellow":"fcea76"},
+  "Bella Canvas Micro Rib Baby Tee 1010": {"Solid Black Blend":"211e16","Solid Forest Blend":"183028","Solid Baby Blue":"83b0c1","Solid Natural":"dfd1a7","Solid Pink Blend":"f7ced7","Athletic Heather":"acb1a6","Solid White Blend":"f4f5f0"},
+  "Bella Canvas Micro Rib Racer Tank 1019": {"Solid Black Blend":"211e16","Solid Forest Blend":"183028","Solid Natural Blend":"dfd1a7","Solid Pink Blend":"f7ced7","Athletic Heather":"acb1a6","Solid White Blend":"f4f5f0"},
+  "Bella Canvas Micro Rib Long Sleeve Baby Tee 1501": {"Solid Black Blend":"211e16","Solid Natural Blend":"dfd1a7","Solid Navy Blend":"1f2a44","Athletic Heather":"acb1a6","Solid White Blend":"f4f5f0"},
+  "Bella Canvas Micro Rib Raglan Baby Tee 1201": {"Athletic Heather/Black":"acb1a6","White/Black":"f4f5f0","White/Kelly":"f4f5f0","White/Baby Blue":"f4f5f0","White/Navy":"f4f5f0","White/Pink":"f4f5f0","White/Red":"f4f5f0","White/True Royal":"f4f5f0"},
+  "Bella Canvas Micro Rib Spaghetti Tank 1012": {"Black":"211e16","White":"f4f5f0","Athletic Heather":"acb1a6","Baby Blue":"83b0c1","Pink":"f7ced7"},
+  "Bella Canvas Women V-Neck 6405": {"Athletic Heather":"acb1a6","Black":"211e16","Dark Grey Heather":"525657","Heather Maroon":"5b2b42","Heather Mauve":"a36d6a","Heather Peach":"f3be8d","Maroon":"672e45","Natural":"dfd1a7","Navy":"1f2a44","Red":"e10600","Pink":"f7ced7","Team Purple":"2e1a47","White":"f4f5f0"},
+  "Bella Canvas Youth Tee 3001Y": {"White":"f4f5f0","Black":"211e16","Ash":"edf1ff","Dark Grey Heather":"525657","Dusty Blue":"9bb2a2","Forest":"183028","Athletic Heather":"acb1a6","Gold":"ffa300","Kelly":"007a53","Maroon":"672e45","Heather Mauve":"a36d6a","Military Green":"60705e","Mustard":"c6973f","Ice Blue Triblend":"a6bbc8","Natural":"dfd1a7","Navy":"1f2a44","Heather Peach":"f3be8d","Pink":"f7ced7","Red":"e10600","Heather Orange":"ff6a39"},
+
+  "Gildan Unisex Tee 64000": {"White":"ffffff","Athletic Heather":"97999b","Dark Grey Heather":"425563","Black":"25282a","Heather Maroon":"672e45","Heather Bronze":"c04c36","Sand":"cabfad","Kelly Green":"00805e","Dark Chocolate":"382f2d","Heather Olive":"4a412a","Heather Midnight Navy":"333f48","Red":"d50032","Orange":"f4633a","Mint":"a0cfab","Heather True Royal":"307fe2","Irish Green":"00a74a","Purple":"464e7e","Forest":"273b33","Heather Deep Teal":"40c1ac","Heather Raspberry":"994878","Pink":"f8a3bc","Heather Peach":"f3be8d","Light Blue":"a4c8e1","Navy":"263147","Indigo Blue":"486d87","Military Green":"5e7461","Maroon":"5b2b42","Charcoal":"66676c"},
+  "Gildan Baby/Youth Tee 5000B": {"Dark Grey Heather":"425563","Royal":"224d8f","Black":"25282a","White":"ffffff","Light Pink":"e4c6d4","Light Blue":"a4c8e1","Athletic Heather":"97999b","Natural":"e7ceb5","Red":"d50032"},
+  "Gildan Toddler Tee 5100P": {"Dark Grey Heather":"425563","True Royal":"224d8f","Black":"25282a","White":"ffffff","Light Pink":"e4c6d4","Athletic Heather":"97999b","Red":"d50032"},
+  "Gildan Unisex Hoodie 18500": {"Black":"25282a","Dark Grey Heather":"425563","Athletic Grey":"97999b","White":"ffffff","Dark Chocolate":"382f2d","Maroon":"5b2b42","Gold":"eead1a","Red":"d50032","Orange":"f4633a","Light Pink":"e4c6d4","Sand":"cabfad","Purple":"464e7e","Light Blue":"a4c8e1","Military Green":"5e7461","Irish Green":"00a74a","Forest Green":"273b33","Royal":"224d8f","Navy":"263147"},
+  "Gildan Unisex Sweatshirt 18000": {"Black":"25282a","Dark Grey Heather":"425563","Athletic Grey":"97999b","White":"ffffff","Dark Chocolate":"382f2d","Maroon":"5b2b42","Gold":"eead1a","Red":"d50032","Orange":"f4633a","Light Pink":"e4c6d4","Sand":"cabfad","Purple":"464e7e","Light Blue":"a4c8e1","Military Green":"5e7461","Irish Green":"00a74a","Forest Green":"273b33","Royal":"224d8f","Carolina Blue":"7ba4db","Indigo Blue":"486d87","Navy":"263147"},
+  "Gildan Youth Sweatshirt 18000B": {"White":"ffffff","Safety Pink":"e16f8f","True Royal":"224d8f","Black":"25282a","Sport Grey":"97999b","Red":"d50032","Forest Green":"273b33","Maroon":"5b2b42","Navy":"263147","Dark Grey Heather":"425563"},
+  "Gildan Youth Hoodie 18500B": {"Black":"25282a","White":"ffffff","Red":"d50032","Navy":"263147"},
+  "Gildan Youth Tee 64000B": {"Black":"25282a","White":"ffffff","True Royal":"224d8f","Athletic Heather":"97999b","Maroon":"5b2b42","Red":"d50032","Light Pink":"e4c6d4","Dark Grey":"425563"},
+
+  "Rabbit Skins Bodysuit 4400": {"White":"eff0eb","Black":"101820","Kelly":"008264","Navy":"051c2c","Natural":"dfd1a7","Red":"da291c","Royal":"1d4289","Pink":"e8b3c3","Light Blue":"9bb8d3","Forest":"1c4538","Cotton Brown":"8b7c5e","Heather":"888b8d","Vintage Smoke":"53565a"},
+  "Rabbit Skins Baby Tee 3322": {"Black":"101820","Kelly":"008264","Light Blue":"9bb8d3","Navy":"051c2c","White":"eff0eb","Red":"da291c","Heather":"888b8d","Ash":"d0d3d4","Orange":"fc4c02","Military Green":"535435","Gold":"ffb81c","Natural":"dfd1a7","Forest":"1c4538"},
+  "Rabbit Skins Toddler Sweatshirt 3317": {"Light Pink":"e8b3c3","Red":"da291c","Natural Heather":"dcd7d2","Black":"101820","Navy":"051c2c","Royal":"1d4289","Dark Grey Heather":"53565a","Sport Grey":"a7a8a9","White":"eff0eb"},
+  "Rabbit Skins Toddler Tee 3321": {"Black":"101820","Vintage Smoke":"53565a","Heather":"888b8d","White":"eff0eb","Peachy":"ecc3b2","Gold":"ffb81c","Kelly":"008264","Light Blue":"9bb8d3","Pink":"e8b3c3","Red":"da291c","Natural":"dfd1a7","Royal":"1d4289","Navy":"051c2c","Ash":"d0d3d4","Orange":"fc4c02","Military Green":"535435","Forest":"1c4538","Coyote Brown":"8b7c5e"},
+
+  "Next Level Crop Top 1580": {"White":"f4f9ff","Antique Gold":"b59e5f","Black":"27272a","Dark Grey":"8e918f","Heather Grey":"a19fa5","Midnight Navy":"2a3244","Red":"cd212a"}
+};
+
+let knColorMode = false;
+let knToleranceVal = 25;
+let knOriginalMockups = {};
+let knCurrentMaskImg = null;
+let knMaskCanvasSize = null;
+let knOriginalImageData = null;
+
+function knPopulatePaletteSelect() {
+  const sel = document.getElementById('kn-palette-select');
+  if (!sel) return;
+  sel.innerHTML = Object.keys(colorPalettes).map(k => `<option value="${k}">${k}</option>`).join('');
+  knRenderSwatches();
+}
+
+function knRenderSwatches() {
+  const sel = document.getElementById('kn-palette-select');
+  const grid = document.getElementById('kn-swatch-grid');
+  if (!sel || !grid) return;
+  const palette = colorPalettes[sel.value] || {};
+  grid.innerHTML = Object.entries(palette).map(([name, hex]) =>
+    `<div title="${name}" onclick="knApplyRecolorColor('${hex}')" style="aspect-ratio:1; border-radius:6px; cursor:pointer; background:#${hex}; border:1px solid #ddd;"></div>`
+  ).join('');
+}
+
+function knToggleColorMode() {
+  if (!knMockups[knCurrentView]) { alert('Önce bu görünüme bir mockup fotoğrafı yükle.'); return; }
+  knColorMode = !knColorMode;
+  const btn = document.getElementById('kn-color-mode-btn');
+  const panel = document.getElementById('kn-recolor-panel');
+  if (knColorMode) {
+    if (!knOriginalMockups[knCurrentView]) knOriginalMockups[knCurrentView] = knMockups[knCurrentView];
+    btn.textContent = '✓ Tişörte tıkla';
+    btn.style.background = '#1D9E75'; btn.style.color = 'white';
+    document.getElementById('kn-shirt-stage').style.cursor = 'crosshair';
+    panel.style.display = 'block';
+  } else {
+    btn.textContent = '🎨 Renk Değiştir';
+    btn.style.background = '#EEEDFE'; btn.style.color = '#3C3489';
+    document.getElementById('kn-shirt-stage').style.cursor = '';
+    panel.style.display = 'none';
+    document.getElementById('kn-mask-overlay').style.display = 'none';
+  }
+}
+
+const KN_MAX_PROCESS_DIM = 700;
+
+function knStageClickForColor(e) {
+  if (!knColorMode) return;
+  if (e.target.closest('.kn-design-layer')) return; // don't pick on a design layer
+  const stage = document.getElementById('kn-shirt-stage');
+  const rect = stage.getBoundingClientRect();
+  const clickXpx = e.clientX - rect.left;
+  const clickYpx = e.clientY - rect.top;
+
+  const img = new Image();
+  img.onload = () => {
+    try {
+      const iw = img.naturalWidth, ih = img.naturalHeight;
+      const scale = Math.min(rect.width / iw, rect.height / ih);
+      const dispW = iw * scale, dispH = ih * scale;
+      const offsetX = (rect.width - dispW) / 2;
+      const offsetY = (rect.height - dispH) / 2;
+      const imgX = (clickXpx - offsetX) / scale;
+      const imgY = (clickYpx - offsetY) / scale;
+      if (imgX < 0 || imgX >= iw || imgY < 0 || imgY >= ih) {
+        alert('Resmin boş kenar boşluğuna tıkladın — tişörtün üzerine tıkla.');
+        return;
+      }
+
+      // Full-res canvas — this stays the actual source for the final recolor
+      const fullCanvas = document.createElement('canvas');
+      fullCanvas.width = iw; fullCanvas.height = ih;
+      const fctx = fullCanvas.getContext('2d');
+      fctx.drawImage(img, 0, 0);
+      knOriginalImageData = fctx.getImageData(0, 0, iw, ih);
+      knMaskCanvasSize = { w: iw, h: ih };
+
+      // Downscaled copy — flood fill runs here for speed + to avoid huge-image memory limits
+      const procScale = Math.min(1, KN_MAX_PROCESS_DIM / Math.max(iw, ih));
+      const pw = Math.max(1, Math.round(iw * procScale));
+      const ph = Math.max(1, Math.round(ih * procScale));
+      const procCanvas = document.createElement('canvas');
+      procCanvas.width = pw; procCanvas.height = ph;
+      const pctx = procCanvas.getContext('2d');
+      pctx.drawImage(img, 0, 0, pw, ph);
+      const procData = pctx.getImageData(0, 0, pw, ph);
+      const px = Math.min(pw - 1, Math.max(0, Math.round(imgX * procScale)));
+      const py = Math.min(ph - 1, Math.max(0, Math.round(imgY * procScale)));
+      const smallMaskRaw = knFloodFillMask(procData, px, py, knToleranceVal);
+      const smallMask = erodeMask(smallMaskRaw, pw, ph, 2); // pull selection back from edges/hair-strand leaks
+
+      let fullMask;
+      if (procScale === 1) {
+        fullMask = smallMask;
+      } else {
+        // upscale the small mask back to full resolution via canvas scaling
+        const maskSmallCanvas = document.createElement('canvas');
+        maskSmallCanvas.width = pw; maskSmallCanvas.height = ph;
+        const mctx = maskSmallCanvas.getContext('2d');
+        const maskImgData = mctx.createImageData(pw, ph);
+        for (let i = 0; i < smallMask.length; i++) maskImgData.data[i * 4 + 3] = smallMask[i];
+        mctx.putImageData(maskImgData, 0, 0);
+
+        const maskFullCanvas = document.createElement('canvas');
+        maskFullCanvas.width = iw; maskFullCanvas.height = ih;
+        const mfctx = maskFullCanvas.getContext('2d');
+        mfctx.drawImage(maskSmallCanvas, 0, 0, iw, ih);
+        const upAlpha = mfctx.getImageData(0, 0, iw, ih).data;
+        fullMask = new Uint8Array(iw * ih);
+        // keep as a continuous 0-255 feather weight (bilinear upscale already softens edges) instead of a hard 0/255 cutoff
+        for (let i = 0; i < fullMask.length; i++) fullMask[i] = upAlpha[i * 4 + 3];
+      }
+
+      knCurrentMaskImg = fullMask;
+      knRenderMaskPreview(fullMask, iw, ih);
+    } catch (err) {
+      alert('Seçim sırasında hata: ' + err.message);
+    }
+  };
+  img.onerror = () => alert('Mockup görseli işlenemedi.');
+  img.src = knOriginalMockups[knCurrentView];
+}
+
+function erodeMask(mask, w, h, iterations) {
+  let cur = mask;
+  for (let it = 0; it < iterations; it++) {
+    const next = new Uint8Array(w * h);
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const p = y * w + x;
+        if (!cur[p]) continue;
+        let keep = true;
+        if (x === 0 || !cur[p - 1]) keep = false;
+        else if (x === w - 1 || !cur[p + 1]) keep = false;
+        else if (y === 0 || !cur[p - w]) keep = false;
+        else if (y === h - 1 || !cur[p + w]) keep = false;
+        next[p] = keep ? 255 : 0;
+      }
+    }
+    cur = next;
+  }
+  return cur;
+}
+
+function knFloodFillMask(imageData, startX, startY, tolerance) {
+  const w = imageData.width, h = imageData.height;
+  const data = imageData.data;
+  const mask = new Uint8Array(w * h);
+  const queued = new Uint8Array(w * h);
+  const idx0 = (startY * w + startX) * 4;
+  const r0 = data[idx0], g0 = data[idx0 + 1], b0 = data[idx0 + 2];
+  const tol2 = tolerance * tolerance * 3;
+  const stackX = new Int32Array(w * h);
+  const stackY = new Int32Array(w * h);
+  let sp = 0;
+  stackX[sp] = startX; stackY[sp] = startY; sp++;
+  queued[startY * w + startX] = 1;
+  while (sp > 0) {
+    sp--;
+    const x = stackX[sp], y = stackY[sp];
+    const p = y * w + x;
+    const idx = p * 4;
+    const dr = data[idx] - r0, dg = data[idx + 1] - g0, db = data[idx + 2] - b0;
+    if ((dr * dr + dg * dg + db * db) > tol2) continue;
+    mask[p] = 255;
+    if (x + 1 < w) { const np = p + 1; if (!queued[np]) { queued[np] = 1; stackX[sp] = x + 1; stackY[sp] = y; sp++; } }
+    if (x - 1 >= 0) { const np = p - 1; if (!queued[np]) { queued[np] = 1; stackX[sp] = x - 1; stackY[sp] = y; sp++; } }
+    if (y + 1 < h) { const np = p + w; if (!queued[np]) { queued[np] = 1; stackX[sp] = x; stackY[sp] = y + 1; sp++; } }
+    if (y - 1 >= 0) { const np = p - w; if (!queued[np]) { queued[np] = 1; stackX[sp] = x; stackY[sp] = y - 1; sp++; } }
+  }
+  return mask;
+}
+
+function knRenderMaskPreview(mask, w, h) {
+  const canvas = document.createElement('canvas');
+  canvas.width = w; canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  const previewData = ctx.createImageData(w, h);
+  for (let i = 0; i < mask.length; i++) {
+    if (mask[i] > 0) {
+      previewData.data[i * 4] = 29;
+      previewData.data[i * 4 + 1] = 158;
+      previewData.data[i * 4 + 2] = 117;
+      previewData.data[i * 4 + 3] = Math.round((mask[i] / 255) * 150);
+    }
+  }
+  ctx.putImageData(previewData, 0, 0);
+  const overlay = document.getElementById('kn-mask-overlay');
+  overlay.src = canvas.toDataURL();
+  overlay.style.display = 'block';
+}
+
+function hexToRgbArr(hex) {
+  hex = hex.replace('#', '');
+  return [parseInt(hex.slice(0, 2), 16), parseInt(hex.slice(2, 4), 16), parseInt(hex.slice(4, 6), 16)];
+}
+
+function rgbToHsl(r, g, b) {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h, s, l = (max + min) / 2;
+  if (max === min) { h = 0; s = 0; }
+  else {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    if (max === r) h = (g - b) / d + (g < b ? 6 : 0);
+    else if (max === g) h = (b - r) / d + 2;
+    else h = (r - g) / d + 4;
+    h /= 6;
+  }
+  return [h, s, l];
+}
+
+function hue2rgb(p, q, t) {
+  if (t < 0) t += 1;
+  if (t > 1) t -= 1;
+  if (t < 1 / 6) return p + (q - p) * 6 * t;
+  if (t < 1 / 2) return q;
+  if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+  return p;
+}
+
+function hslToRgb(h, s, l) {
+  let r, g, b;
+  if (s === 0) { r = g = b = l; }
+  else {
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    const p = 2 * l - q;
+    r = hue2rgb(p, q, h + 1 / 3);
+    g = hue2rgb(p, q, h);
+    b = hue2rgb(p, q, h - 1 / 3);
+  }
+  return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+}
+
+function knApplyRecolorColor(hex) {
+  if (!knCurrentMaskImg) { alert('Önce tişörtün üstüne tıklayıp bir bölge seç.'); return; }
+  const { w, h } = knMaskCanvasSize;
+  const data = knOriginalImageData.data;
+  const out = new Uint8ClampedArray(data);
+  const [tr, tg, tb] = hexToRgbArr(hex);
+
+  // 1) find the brightest luminance among confidently-selected pixels — this becomes our "pure color" reference point
+  let maxLum = 0;
+  for (let p = 0; p < knCurrentMaskImg.length; p++) {
+    if (knCurrentMaskImg[p] < 180) continue; // only count solid, confident selection — ignore feathered edge pixels
+    const idx = p * 4;
+    const lum = 0.299 * data[idx] + 0.587 * data[idx + 1] + 0.114 * data[idx + 2];
+    if (lum > maxLum) maxLum = lum;
+  }
+  if (maxLum < 10) maxLum = 255; // safety fallback
+
+  // 2) recolor: scale target color by each pixel's normalized luminance, then blend with original by feather weight for soft edges
+  for (let p = 0; p < knCurrentMaskImg.length; p++) {
+    const weight = knCurrentMaskImg[p] / 255;
+    if (weight <= 0) continue;
+    const idx = p * 4;
+    const lum = 0.299 * data[idx] + 0.587 * data[idx + 1] + 0.114 * data[idx + 2];
+    let factor = lum / maxLum;
+    factor = Math.min(1, factor * 1.08); // slight brightness boost so highlights read as true color, not slightly dim
+    const rr = tr * factor, gg = tg * factor, bb = tb * factor;
+    out[idx] = data[idx] * (1 - weight) + rr * weight;
+    out[idx + 1] = data[idx + 1] * (1 - weight) + gg * weight;
+    out[idx + 2] = data[idx + 2] * (1 - weight) + bb * weight;
+  }
+  const canvas = document.createElement('canvas');
+  canvas.width = w; canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  ctx.putImageData(new ImageData(out, w, h), 0, 0);
+  knMockups[knCurrentView] = canvas.toDataURL('image/png');
+  knRenderMockupBg();
+  document.getElementById('kn-mask-overlay').style.display = 'none';
+  knCurrentMaskImg = null;
+}
+
+function knResetMockupColor() {
+  if (knOriginalMockups[knCurrentView]) {
+    knMockups[knCurrentView] = knOriginalMockups[knCurrentView];
+    knRenderMockupBg();
+  }
+  document.getElementById('kn-mask-overlay').style.display = 'none';
+  knCurrentMaskImg = null;
+}
+
+knPopulatePaletteSelect();
+knRenderMockupBg();
+knRenderLayers();
+
+</script>
+
+<div style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center;" id="pano-modal-bg" onclick="panoCloseModal(event)">
+<div style="background:var(--color-background-primary);border-radius:var(--border-radius-lg);padding:1.5rem;width:90%;max-width:460px;max-height:85vh;overflow-y:auto;">
+  <div style="font-size:15px;font-weight:500;margin-bottom:1rem;display:flex;justify-content:space-between;align-items:center;"><span id="pano-modal-title">Yeni tasarım ekle</span><span><button onclick="panoOpenModalFresh()" style="font-size:11px;color:var(--color-text-tertiary);background:none;border:none;cursor:pointer;text-decoration:underline;margin-right:8px;">Sıfırla</button><button onclick="panoCloseModalDirect()" style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--color-text-secondary);">✕</button></span></div>
+  <div style="margin-bottom:10px;">
+    <label style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:6px;">Görseller (max 10)</label>
+    <div id="pf-img-grid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:8px;"></div>
+    <button type="button" onclick="document.getElementById('pf-img-input').click()" style="width:100%;padding:8px;font-size:13px;border-radius:var(--border-radius-md);cursor:pointer;background:#1D9E75;color:white;border:none;">+ Görsel ekle (Cloudinary)</button>
+    <input type="file" id="pf-img-input" accept="image/*" style="display:none;" onchange="panoUploadToCloudinary(this)" />
+    <div id="pf-upload-status" style="font-size:12px;color:var(--color-text-secondary);margin-top:4px;text-align:center;"></div>
+  </div>
+  <div style="margin-bottom:10px;"><label style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:4px;">Tasarım adı</label><input type="text" id="pf-ad" placeholder="örn: 1776-2026 Arrow" oninput="panoSaveDraft()"></div>
+  <div style="margin-bottom:10px;"><label style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:4px;">Niş</label><input type="text" id="pf-nis" placeholder="örn: Patriotic, 4th of July" oninput="panoSaveDraft()"></div>
+  <div style="margin-bottom:10px;">
+    <label style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:6px;">Marka (hangisinde basılacak + model kodu)</label>
+    <div style="display:flex;flex-direction:column;gap:6px;font-size:12px;">
+      <div style="display:flex;align-items:center;gap:8px;"><label style="display:flex;align-items:center;gap:6px;cursor:pointer;min-width:120px;"><input type="checkbox" id="pt-bella" style="width:auto;" onchange="panoSaveDraft()"> Bella Canvas</label><input type="text" id="pt-bella-model" placeholder="örn: 3001" style="flex:1;font-size:12px;padding:5px 8px;" oninput="panoSaveDraft()"></div>
+      <div style="display:flex;align-items:center;gap:8px;"><label style="display:flex;align-items:center;gap:6px;cursor:pointer;min-width:120px;"><input type="checkbox" id="pt-cc" style="width:auto;" onchange="panoSaveDraft()"> Comfort Colors</label><input type="text" id="pt-cc-model" placeholder="örn: 1717" style="flex:1;font-size:12px;padding:5px 8px;" oninput="panoSaveDraft()"></div>
+      <div style="display:flex;align-items:center;gap:8px;"><label style="display:flex;align-items:center;gap:6px;cursor:pointer;min-width:120px;"><input type="checkbox" id="pt-gildan" style="width:auto;" onchange="panoSaveDraft()"> Gildan</label><input type="text" id="pt-gildan-model" placeholder="örn: 64000" style="flex:1;font-size:12px;padding:5px 8px;" oninput="panoSaveDraft()"></div>
+      <div style="display:flex;align-items:center;gap:8px;"><label style="display:flex;align-items:center;gap:6px;cursor:pointer;min-width:120px;"><input type="checkbox" id="pt-rabbit" style="width:auto;" onchange="panoSaveDraft()"> Rabbit Skins</label><input type="text" id="pt-rabbit-model" placeholder="örn: 3321" style="flex:1;font-size:12px;padding:5px 8px;" oninput="panoSaveDraft()"></div>
+      <div style="display:flex;align-items:center;gap:8px;"><label style="display:flex;align-items:center;gap:6px;cursor:pointer;min-width:120px;"><input type="checkbox" id="pt-nextlevel" style="width:auto;" onchange="panoSaveDraft()"> Next Level</label><input type="text" id="pt-nextlevel-model" placeholder="örn: 1580" style="flex:1;font-size:12px;padding:5px 8px;" oninput="panoSaveDraft()"></div>
+    </div>
+  </div>
+  <div style="margin-bottom:10px;"><label style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:4px;">Durum</label><select id="pf-durum" onchange="panoSaveDraft()"><option value="Bekliyor">Bekliyor</option><option value="Hazır">Hazır</option><option value="Yayında">Yayında</option></select></div>
+  <div style="margin-bottom:10px;"><label style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:4px;">Potansiyel skoru</label><input type="text" id="pf-skor" placeholder="örn: 8/10" oninput="panoSaveDraft()"></div>
+  <div style="margin-bottom:10px;"><label style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:4px;">Etsy başlığı</label><input type="text" id="pf-baslik" placeholder="SEO başlığı" oninput="panoSaveDraft()"></div>
+  <div style="margin-bottom:10px;"><label style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:4px;">Marka önerisi</label><input type="text" id="pf-marka" placeholder="örn: Comfort Colors 1717" oninput="panoSaveDraft()"></div>
+  <div style="margin-bottom:10px;"><label style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:4px;">Fiyat tavsiyesi</label><input type="text" id="pf-fiyat" placeholder="örn: $24-32" oninput="panoSaveDraft()"></div>
+  <div style="margin-bottom:10px;"><label style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:4px;">AI prompt</label><textarea id="pf-prompt" style="min-height:60px;resize:vertical;" placeholder="Tekrar üretmek için AI promptu" oninput="panoSaveDraft()"></textarea></div>
+  <div style="margin-bottom:10px;"><label style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:4px;">Notlar</label><textarea id="pf-notlar" style="min-height:60px;resize:vertical;" placeholder="Geliştirme önerileri..." oninput="panoSaveDraft()"></textarea></div>
+
+  <div style="height:0.5px;background:var(--color-border-tertiary);margin:1rem 0;"></div>
+  <div style="font-size:12px;font-weight:500;color:#1D9E75;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.04em;">Etsy Listing Bilgileri</div>
+
+  <div style="margin-bottom:10px;"><label style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:4px;">Tag'ler (13 adet, virgülle)</label><textarea id="pf-tags" style="min-height:60px;resize:vertical;" placeholder="vintage cat shirt, cat lover gift, funny cat tee..." oninput="panoSaveDraft()"></textarea></div>
+
+  <div style="margin-bottom:10px;"><label style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:4px;">Kategori</label><input type="text" id="pf-kategori" placeholder="örn: Clothing &gt; Tops &amp; Tees &gt; T-Shirts" oninput="panoSaveDraft()" /></div>
+
+  <div style="margin-bottom:10px;"><label style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:4px;">Varyantlar (renk, beden)</label><textarea id="pf-varyant" style="min-height:60px;resize:vertical;" placeholder="Renkler: Black, Navy, White&#10;Bedenler: S, M, L, XL, 2XL, 3XL" oninput="panoSaveDraft()"></textarea></div>
+
+  <div style="margin-bottom:10px;"><label style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:4px;">Stok miktarı</label><input type="text" id="pf-stok" placeholder="örn: 999" oninput="panoSaveDraft()"></div>
+
+  <div style="margin-bottom:10px;"><label style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:4px;">Üretim süresi</label><input type="text" id="pf-uretim" placeholder="örn: 1-3 iş günü" oninput="panoSaveDraft()"></div>
+
+  <div style="margin-bottom:10px;"><label style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:4px;">Ürün hikayesi (TR/EN)</label><textarea id="pf-hikaye" style="min-height:100px;resize:vertical;" placeholder="Listing Yazıcı'dan kopyala..." oninput="panoSaveDraft()"></textarea></div>
+
+  <div style="margin-bottom:10px;"><label style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:4px;">Bakım talimatları (TR/EN)</label><textarea id="pf-bakim" style="min-height:80px;resize:vertical;" placeholder="Listing Yazıcı'dan kopyala..." oninput="panoSaveDraft()"></textarea></div>
+
+  <div style="margin-bottom:10px;"><label style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:4px;">İade & iptal politikası (TR/EN)</label><textarea id="pf-iade" style="min-height:80px;resize:vertical;" placeholder="Listing Yazıcı'dan kopyala..." oninput="panoSaveDraft()"></textarea></div>
+
+  <div style="margin-bottom:10px;"><label style="font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:4px;">Kargo profili</label><input type="text" id="pf-kargo" placeholder="örn: Standard US Shipping, Free Shipping" oninput="panoSaveDraft()"></div>
+
+  <div style="display:flex;gap:8px;margin-top:1rem;"><button onclick="if(panoEditId){panoDelete(panoEditId);}" id="pano-modal-delete-btn" style="display:none;padding:9px 12px;border-radius:var(--border-radius-md);cursor:pointer;font-size:13px;background:#FCEBEB;color:#922B21;border:none;">Sil</button><button onclick="panoCloseModalDirect()" style="flex:1;padding:9px;border-radius:var(--border-radius-md);cursor:pointer;font-size:13px;background:var(--color-background-secondary);color:var(--color-text-secondary);border:0.5px solid var(--color-border-secondary);">İptal</button><button onclick="panoSave()" style="flex:1;padding:9px;border-radius:var(--border-radius-md);cursor:pointer;font-size:13px;background:#1D9E75;color:white;border:none;">Kaydet</button></div>
+</div>
+</div>
+</body>
+</html>
